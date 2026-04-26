@@ -27,6 +27,7 @@ app.add_middleware(
 class LegalQuery(BaseModel):
     problem: str
     conversation_history: Optional[List[dict]] = []
+    reply_mode: Optional[str] = 'quick'
 
 class LegalResponse(BaseModel):
     response: str
@@ -65,10 +66,10 @@ async def analyze_legal_problem(query: LegalQuery):
     # Step 2: Build intelligent prompt
     if query.conversation_history:
         system_prompt, user_message = build_followup_prompt(
-            query.conversation_history, query.problem
+            query.conversation_history, query.problem, query.reply_mode
         )
     else:
-        system_prompt, user_message = build_prompt(query.problem, category)
+        system_prompt, user_message = build_prompt(query.problem, category, query.reply_mode)
     
     # Step 3: Call LLM
     llm_response = await call_llm(

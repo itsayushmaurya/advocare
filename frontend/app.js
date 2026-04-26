@@ -2,12 +2,32 @@ const API_BASE = "http://localhost:8000";
 let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
+let replyMode = "quick"; // 'quick' or 'detail'
 
 // ─── On Page Load ───────────────────────────────────────────
 window.addEventListener("load", () => {
   renderSidebar();
   loadLastSession();
+  updateReplyToggle();
 });
+
+function setReplyMode(mode) {
+  replyMode = mode;
+  updateReplyToggle();
+}
+
+function updateReplyToggle() {
+  const quickBtn = document.getElementById("quickBtn");
+  const detailBtn = document.getElementById("detailBtn");
+  if (!quickBtn || !detailBtn) return;
+  if (replyMode === "quick") {
+    quickBtn.classList.add("active");
+    detailBtn.classList.remove("active");
+  } else {
+    quickBtn.classList.remove("active");
+    detailBtn.classList.add("active");
+  }
+}
 
 // ─── Session Helpers ────────────────────────────────────────
 function generateId() {
@@ -21,26 +41,27 @@ function getAllSessions() {
 
 async function saveSession(sessionId, messages, strengthData = null) {
   const sessions = getAllSessions();
-  
+
   // Keep existing strength if no new one passed
   const existing = sessions[sessionId];
-  const strength = strengthData !== null ? strengthData : (existing ? existing.strength : null);
-  
+  const strength =
+    strengthData !== null ? strengthData : existing ? existing.strength : null;
+
   sessions[sessionId] = {
     id: sessionId,
     title: getSessionTitle(messages),
     messages: messages,
     strength: strength,
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
   };
-  
+
   localStorage.setItem("byol_sessions", JSON.stringify(sessions));
   renderSidebar();
 }
 
 function getSessionTitle(messages) {
   // Use first user message as title
-  const first = messages.find(m => m.role === "user");
+  const first = messages.find((m) => m.role === "user");
   if (!first) return "New Chat";
   return first.content.length > 45
     ? first.content.substring(0, 45) + "..."
@@ -65,18 +86,23 @@ function loadSession(sessionId) {
   clearChatWindow();
   showWelcomeMessage();
 
-  session.messages.forEach(msg => {
+  session.messages.forEach((msg) => {
     if (msg.role === "user") appendUserMessage(msg.content, false);
-    else if (msg.role === "assistant") appendBotMessage(msg.content, msg.category || "", false);
+    else if (msg.role === "assistant")
+      appendBotMessage(msg.content, msg.category || "", false);
   });
 
   // ← Restore strength panel
   if (session.strength) {
-    updateStrengthPanel(session.strength.score, session.strength.positives, session.strength.negatives);
+    updateStrengthPanel(
+      session.strength.score,
+      session.strength.positives,
+      session.strength.negatives,
+    );
   } else {
     // Reset panel to empty state
-    document.getElementById('strengthEmpty').classList.remove('hidden');
-    document.getElementById('strengthResults').classList.add('hidden');
+    document.getElementById("strengthEmpty").classList.remove("hidden");
+    document.getElementById("strengthResults").classList.add("hidden");
   }
 
   renderSidebar();
@@ -84,7 +110,9 @@ function loadSession(sessionId) {
 
 function loadLastSession() {
   const sessions = getAllSessions();
-  const sorted = Object.values(sessions).sort((a, b) => b.updatedAt - a.updatedAt);
+  const sorted = Object.values(sessions).sort(
+    (a, b) => b.updatedAt - a.updatedAt,
+  );
   if (sorted.length > 0) {
     loadSession(sorted[0].id);
   } else {
@@ -107,7 +135,9 @@ function deleteSession(sessionId, e) {
 // ─── Sidebar Rendering ──────────────────────────────────────
 function renderSidebar() {
   const sessions = getAllSessions();
-  const sorted = Object.values(sessions).sort((a, b) => b.updatedAt - a.updatedAt);
+  const sorted = Object.values(sessions).sort(
+    (a, b) => b.updatedAt - a.updatedAt,
+  );
   const list = document.getElementById("sessionList");
 
   if (sorted.length === 0) {
@@ -115,7 +145,9 @@ function renderSidebar() {
     return;
   }
 
-  list.innerHTML = sorted.map(session => `
+  list.innerHTML = sorted
+    .map(
+      (session) => `
     <div class="session-item ${session.id === currentSessionId ? "active" : ""}"
          onclick="loadSession('${session.id}')">
       <div class="session-info">
@@ -124,14 +156,17 @@ function renderSidebar() {
       </div>
       <button class="delete-btn" onclick="deleteSession('${session.id}', event)" title="Delete">✕</button>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function formatDate(ts) {
   const d = new Date(ts);
   const now = new Date();
   const isToday = d.toDateString() === now.toDateString();
-  if (isToday) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  if (isToday)
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
@@ -158,7 +193,8 @@ function showWelcomeMessage() {
 document.getElementById("userInput").addEventListener("input", function () {
   const count = this.value.length;
   document.getElementById("charCount").textContent = `${count} / 2000`;
-  document.getElementById("charCount").style.color = count > 1900 ? "#ef4444" : "#64748b";
+  document.getElementById("charCount").style.color =
+    count > 1900 ? "#ef4444" : "#64748b";
 });
 
 function setExample(text) {
@@ -198,8 +234,9 @@ async function submitQuery() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         problem: input,
-        conversation_history: conversationHistory
-      })
+        conversation_history: conversationHistory,
+        reply_mode: replyMode,
+      }),
     });
 
     removeTyping(typingId);
@@ -210,21 +247,26 @@ async function submitQuery() {
     }
 
     const data = await response.json();
-    const { cleanText, score, positives, negatives } = parseResponse(data.response);
-    
+    const { cleanText, score, positives, negatives } = parseResponse(
+      data.response,
+    );
+
     console.log("PARSED:", score, positives, negatives);
 
     // Update history
     //conversationHistory.push({ role: "user", content: input });
     //conversationHistory.push({ role: "assistant", content: cleanText, category: data.detected_category });
-    
+
     conversationHistory.push({ role: "user", content: input });
-    conversationHistory.push({ 
-      role: "assistant", 
+    conversationHistory.push({
+      role: "assistant",
       content: cleanText
-        .replace(/---CASE_ANALYSIS_START---[\s\S]*?---CASE_ANALYSIS_END---/g, '')
-        .replace(/---CASE_ANALYSIS_START---[\s\S]*$/g, '')
-        .trim()
+        .replace(
+          /---CASE_ANALYSIS_START---[\s\S]*?---CASE_ANALYSIS_END---/g,
+          "",
+        )
+        .replace(/---CASE_ANALYSIS_START---[\s\S]*$/g, "")
+        .trim(),
       // NO category field here — Groq rejects unknown fields
     });
 
@@ -233,18 +275,21 @@ async function submitQuery() {
     // Update strength panel + save strength with session
     if (score !== null) {
       updateStrengthPanel(score, positives, negatives);
-      await saveSession(currentSessionId, conversationHistory, { score, positives, negatives });
+      await saveSession(currentSessionId, conversationHistory, {
+        score,
+        positives,
+        negatives,
+      });
     } else {
       await saveSession(currentSessionId, conversationHistory, null);
     }
-
   } catch (err) {
     removeTyping(typingId);
     appendBotMessage(
       err.message === "Failed to fetch"
         ? "❌ Could not connect to the server. Make sure backend is running on port 8000."
         : `❌ Error: ${err.message}`,
-      "error"
+      "error",
     );
   }
 
@@ -268,8 +313,10 @@ function appendBotMessage(text, category = "", save = true) {
   const div = document.createElement("div");
   div.className = "message bot-message";
 
-  const categoryLabel = category && category !== "general" && category !== "error"
-    ? `<div class="category-badge">📂 ${formatCategory(category)}</div>` : "";
+  const categoryLabel =
+    category && category !== "general" && category !== "error"
+      ? `<div class="category-badge">📂 ${formatCategory(category)}</div>`
+      : "";
 
   div.innerHTML = `
     <div class="bot-avatar">⚖️</div>
@@ -279,25 +326,35 @@ function appendBotMessage(text, category = "", save = true) {
     </div>
   `;
   chatWindow.appendChild(div);
-  scrollToBottom();
+  scrollToBottom(true);
 }
 
 function formatResponse(text) {
   return text
-    .replace(/🔍 ISSUE TYPE/g, '<strong>🔍 ISSUE TYPE</strong>')
-    .replace(/📋 STEPS TO TAKE/g, '<strong>📋 STEPS TO TAKE</strong>')
-    .replace(/🏛️ WHERE TO FILE COMPLAINT/g, '<strong>🏛️ WHERE TO FILE COMPLAINT</strong>')
-    .replace(/⚖️ YOUR RIGHTS/g, '<strong>⚖️ YOUR RIGHTS</strong>')
-    .replace(/💡 IMPORTANT TIP/g, '<strong>💡 IMPORTANT TIP</strong>')
-    .replace(/\n/g, '<br>')
-    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#1a56db">$1</a>');
+    .replace(/🔍 ISSUE TYPE/g, "<strong>🔍 ISSUE TYPE</strong>")
+    .replace(/📋 STEPS TO TAKE/g, "<strong>📋 STEPS TO TAKE</strong>")
+    .replace(
+      /🏛️ WHERE TO FILE COMPLAINT/g,
+      "<strong>🏛️ WHERE TO FILE COMPLAINT</strong>",
+    )
+    .replace(/⚖️ YOUR RIGHTS/g, "<strong>⚖️ YOUR RIGHTS</strong>")
+    .replace(/💡 IMPORTANT TIP/g, "<strong>💡 IMPORTANT TIP</strong>")
+    .replace(/\n/g, "<br>")
+    .replace(
+      /(https?:\/\/[^\s<]+)/g,
+      '<a href="$1" target="_blank" style="color:#1a56db">$1</a>',
+    );
 }
 
 function formatCategory(cat) {
   const map = {
-    cybercrime: "Cybercrime", consumer: "Consumer Complaint",
-    labour: "Labour / Employment", rental: "Rental Dispute",
-    domestic_violence: "Domestic Issue", property: "Property Dispute", general: "General Legal"
+    cybercrime: "Cybercrime",
+    consumer: "Consumer Complaint",
+    labour: "Labour / Employment",
+    rental: "Rental Dispute",
+    domestic_violence: "Domestic Issue",
+    property: "Property Dispute",
+    general: "General Legal",
   };
   return map[cat] || cat;
 }
@@ -333,25 +390,34 @@ function setLoading(state) {
   btn.disabled = state;
 }
 
-function scrollToBottom() {
+function scrollToBottom(toTop = false) {
   const cw = document.getElementById("chatWindow");
-  cw.scrollTop = cw.scrollHeight;
+  if (toTop) {
+    cw.scrollTop = 0;
+  } else {
+    cw.scrollTop = cw.scrollHeight;
+  }
 }
 
 function showError(msg) {
   const input = document.getElementById("userInput");
   input.style.borderColor = "#ef4444";
-  setTimeout(() => { input.style.borderColor = ""; }, 2000);
+  setTimeout(() => {
+    input.style.borderColor = "";
+  }, 2000);
   alert(msg);
 }
 
 function escapeHtml(text) {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function parseResponse(fullText) {
   const analysisMatch = fullText.match(
-    /---CASE_ANALYSIS_START---([\s\S]*?)(?:---CASE_ANALYSIS_END---|$)/
+    /---CASE_ANALYSIS_START---([\s\S]*?)(?:---CASE_ANALYSIS_END---|$)/,
   );
 
   let score = null;
@@ -364,8 +430,8 @@ function parseResponse(fullText) {
 
     // Remove the analysis block from visible chat text
     cleanText = fullText
-      .replace(/---CASE_ANALYSIS_START---[\s\S]*?---CASE_ANALYSIS_END---/, '')
-      .replace(/---CASE_ANALYSIS_START---[\s\S]*$/, '')
+      .replace(/---CASE_ANALYSIS_START---[\s\S]*?---CASE_ANALYSIS_END---/, "")
+      .replace(/---CASE_ANALYSIS_START---[\s\S]*$/, "")
       .trim();
 
     // Parse score
@@ -373,18 +439,26 @@ function parseResponse(fullText) {
     if (scoreMatch) score = parseInt(scoreMatch[1]);
 
     // Parse positives
-    const posSection = block.match(/POSITIVE_POINTS:([\s\S]*?)NEGATIVE_POINTS:/);
+    const posSection = block.match(
+      /POSITIVE_POINTS:([\s\S]*?)NEGATIVE_POINTS:/,
+    );
     if (posSection) {
-      positives = posSection[1].trim().split('\n')
-        .map(l => l.replace(/^-\s*/, '').trim())
+      positives = posSection[1]
+        .trim()
+        .split("\n")
+        .map((l) => l.replace(/^-\s*/, "").trim())
         .filter(Boolean);
     }
 
     // Parse negatives
-    const negSection = block.match(/NEGATIVE_POINTS:([\s\S]*?)(?:---CASE_ANALYSIS_END---|$)/);
+    const negSection = block.match(
+      /NEGATIVE_POINTS:([\s\S]*?)(?:---CASE_ANALYSIS_END---|$)/,
+    );
     if (negSection) {
-      negatives = negSection[1].trim().split('\n')
-        .map(l => l.replace(/^-\s*/, '').trim())
+      negatives = negSection[1]
+        .trim()
+        .split("\n")
+        .map((l) => l.replace(/^-\s*/, "").trim())
         .filter(Boolean);
     }
   }
@@ -394,39 +468,45 @@ function parseResponse(fullText) {
 
 function updateStrengthPanel(score, positives, negatives) {
   // Show results, hide empty state
-  document.getElementById('strengthEmpty').classList.add('hidden');
-  document.getElementById('strengthResults').classList.remove('hidden');
+  document.getElementById("strengthEmpty").classList.add("hidden");
+  document.getElementById("strengthResults").classList.remove("hidden");
 
   // Score color
-  const color = score >= 65 ? '#059669' : score >= 40 ? '#f59e0b' : '#ef4444';
-  document.getElementById('scoreDisplay').innerHTML =
+  const color = score >= 65 ? "#059669" : score >= 40 ? "#f59e0b" : "#ef4444";
+  document.getElementById("scoreDisplay").innerHTML =
     `<span style="color:${color}">${score}%</span><br>
      <span style="font-size:13px;font-weight:500;color:#64748b">Case Strength</span>`;
 
   // Bar — red on left, green on right
-  document.getElementById('barRed').style.width = `${100 - score}%`;
-  document.getElementById('barGreen').style.width = `${score}%`;
+  document.getElementById("barRed").style.width = `${100 - score}%`;
+  document.getElementById("barGreen").style.width = `${score}%`;
 
   // Store points for toggle
-  const posBox = document.getElementById('positivePoints');
-  const negBox = document.getElementById('negativePoints');
+  const posBox = document.getElementById("positivePoints");
+  const negBox = document.getElementById("negativePoints");
 
-  posBox.className = 'points-box green-box hidden';
-  posBox.innerHTML = '<ul>' + positives.map(p => `<li>✦ ${escapeHtml(p)}</li>`).join('') + '</ul>';
+  posBox.className = "points-box green-box hidden";
+  posBox.innerHTML =
+    "<ul>" +
+    positives.map((p) => `<li>✦ ${escapeHtml(p)}</li>`).join("") +
+    "</ul>";
 
-  negBox.className = 'points-box red-box hidden';
-  negBox.innerHTML = '<ul>' + negatives.map(n => `<li>⚠ ${escapeHtml(n)}</li>`).join('') + '</ul>';
+  negBox.className = "points-box red-box hidden";
+  negBox.innerHTML =
+    "<ul>" +
+    negatives.map((n) => `<li>⚠ ${escapeHtml(n)}</li>`).join("") +
+    "</ul>";
 }
 
 function togglePoints(type) {
-  const posBox = document.getElementById('positivePoints');
-  const negBox = document.getElementById('negativePoints');
+  const posBox = document.getElementById("positivePoints");
+  const negBox = document.getElementById("negativePoints");
 
-  if (type === 'positive') {
-    posBox.classList.toggle('hidden');
-    negBox.classList.add('hidden');
+  if (type === "positive") {
+    posBox.classList.toggle("hidden");
+    negBox.classList.add("hidden");
   } else {
-    negBox.classList.toggle('hidden');
-    posBox.classList.add('hidden');
+    negBox.classList.toggle("hidden");
+    posBox.classList.add("hidden");
   }
 }

@@ -1,118 +1,178 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Advocare – AI Legal Assistant</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-
-  <header class="header">
-    <div class="header-inner">
-      <div class="logo">
-        <span class="logo-icon">⚖️</span>
-        <div>
-          <h1>Advocare</h1>
-          <p>Free AI Legal Guidance for Every Indian</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advocare – AI Legal Assistant</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">⚖️</span>
+          <div>
+            <h1>Advocare</h1>
+            <p>Free AI Legal Guidance for Every Indian</p>
+          </div>
         </div>
+        <div class="badge">🇮🇳 India Specific</div>
       </div>
-      <div class="badge">🇮🇳 India Specific</div>
-    </div>
-  </header>
+    </header>
 
-  <div class="app-layout">
+    <div class="app-layout">
+      <aside class="sidebar">
+        <button class="new-chat-btn" onclick="startNewSession()">
+          + New Chat
+        </button>
+        <p class="sidebar-label">Previous Chats</p>
+        <div id="sessionList" class="session-list"></div>
+      </aside>
 
-    <aside class="sidebar">
-      <button class="new-chat-btn" onclick="startNewSession()">+ New Chat</button>
-      <p class="sidebar-label">Previous Chats</p>
-      <div id="sessionList" class="session-list"></div>
-    </aside>
-
-    <main class="main">
-
-      <div class="examples-section">
-        <p class="examples-label">Try an example:</p>
-        <div class="chips">
-          <button class="chip" onclick="setExample('My landlord is refusing to return my security deposit after I vacated the flat')">🏠 Landlord deposit</button>
-          <button class="chip" onclick="setExample('I got scammed online, someone took money from my UPI account')">💸 UPI fraud</button>
-          <button class="chip" onclick="setExample('My employer has not paid my salary for 2 months')">👔 Unpaid salary</button>
-          <button class="chip" onclick="setExample('I received a defective product and they are not giving refund')">📦 Defective product</button>
-        </div>
-      </div>
-
-      <div class="chat-container">
-        <div class="chat-window" id="chatWindow"></div>
-        <div class="input-area">
-          <textarea id="userInput" placeholder="Describe your legal problem here... (e.g. 'My boss fired me without notice')" rows="3" onkeydown="handleKey(event)"></textarea>
-          <div class="input-actions">
-            <span class="char-count" id="charCount">0 / 2000</span>
-            <button class="send-btn" id="sendBtn" onclick="submitQuery()">
-              <span id="btnText">Get Legal Help →</span>
-              <span id="btnLoader" class="hidden">Analyzing...</span>
+      <main class="main">
+        <div class="examples-section">
+          <p class="examples-label">Try an example:</p>
+          <div class="chips">
+            <button
+              class="chip"
+              onclick="
+                setExample(
+                  'My landlord is refusing to return my security deposit after I vacated the flat',
+                )
+              "
+            >
+              🏠 Landlord deposit
+            </button>
+            <button
+              class="chip"
+              onclick="
+                setExample(
+                  'I got scammed online, someone took money from my UPI account',
+                )
+              "
+            >
+              💸 UPI fraud
+            </button>
+            <button
+              class="chip"
+              onclick="
+                setExample('My employer has not paid my salary for 2 months')
+              "
+            >
+              👔 Unpaid salary
+            </button>
+            <button
+              class="chip"
+              onclick="
+                setExample(
+                  'I received a defective product and they are not giving refund',
+                )
+              "
+            >
+              📦 Defective product
             </button>
           </div>
         </div>
-      </div>
 
-      <div class="info-bar">
-        <span>🆓 100% Free</span>
-        <span>🔒 Private</span>
-        <span>📱 Works on Mobile</span>
-        <span>🇮🇳 Indian Law</span>
-      </div>
-
-    </main>
-
-    <!-- Strength Panel -->
-    <aside class="strength-panel" id="strengthPanel">
-      <div class="strength-header">
-        <span>⚖️</span>
-        <h3>Case Strength</h3>
-      </div>
-
-      <!-- Empty state -->
-      <div class="strength-empty" id="strengthEmpty">
-        <p>Submit your problem to see case analysis</p>
-      </div>
-
-      <!-- Results (hidden until first query) -->
-      <div class="strength-results hidden" id="strengthResults">
-
-        <!-- Score -->
-        <div class="score-display" id="scoreDisplay"></div>
-
-        <!-- Bar -->
-        <div class="strength-bar-wrap">
-          <div class="strength-bar" id="strengthBar">
-            <div class="bar-red" id="barRed"></div>
-            <div class="bar-green" id="barGreen"></div>
-          </div>
-          <div class="bar-labels">
-            <span style="color:#ef4444">Weak</span>
-            <span style="color:#059669">Strong</span>
+        <div class="chat-container">
+          <div class="chat-window" id="chatWindow"></div>
+          <div class="input-area">
+            <textarea
+              id="userInput"
+              placeholder="Describe your legal problem here... (e.g. 'My boss fired me without notice')"
+              rows="3"
+              onkeydown="handleKey(event)"
+            ></textarea>
+            <div class="input-actions">
+              <span class="char-count" id="charCount">0 / 2000</span>
+              <div class="reply-toggle">
+                <button
+                  id="quickBtn"
+                  class="toggle-btn active"
+                  onclick="setReplyMode('quick')"
+                >
+                  Quick
+                </button>
+                <button
+                  id="detailBtn"
+                  class="toggle-btn"
+                  onclick="setReplyMode('detail')"
+                >
+                  Detailed
+                </button>
+              </div>
+              <button class="send-btn" id="sendBtn" onclick="submitQuery()">
+                <span id="btnText">Get Legal Help →</span>
+                <span id="btnLoader" class="hidden">Analyzing...</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Buttons -->
-        <div class="panel-buttons">
-          <button class="panel-btn btn-green" onclick="togglePoints('positive')">
-            ✦ Strong Claims
-          </button>
-          <button class="panel-btn btn-red" onclick="togglePoints('negative')">
-            ⚠ Weak Points
-          </button>
+        <div class="info-bar">
+          <span>🆓 100% Free</span>
+          <span>🔒 Private</span>
+          <span>📱 Works on Mobile</span>
+          <span>🇮🇳 Indian Law</span>
+        </div>
+      </main>
+
+      <!-- Strength Panel -->
+      <aside class="strength-panel" id="strengthPanel">
+        <div class="strength-header">
+          <span>⚖️</span>
+          <h3>Case Strength</h3>
         </div>
 
-        <!-- Points reveal -->
-        <div class="points-box hidden" id="positivePoints"></div>
-        <div class="points-box hidden" id="negativePoints"></div>
+        <!-- Empty state -->
+        <div class="strength-empty" id="strengthEmpty">
+          <p>Submit your problem to see case analysis</p>
+        </div>
 
-      </div>
-    </aside>
-  </div>
+        <!-- Results (hidden until first query) -->
+        <div class="strength-results hidden" id="strengthResults">
+          <!-- Score -->
+          <div class="score-display" id="scoreDisplay"></div>
 
-  <script src="app.js"></script>
-</body>
+          <!-- Bar -->
+          <div class="strength-bar-wrap">
+            <div class="strength-bar" id="strengthBar">
+              <div class="bar-red" id="barRed"></div>
+              <div class="bar-green" id="barGreen"></div>
+            </div>
+            <div class="bar-labels">
+              <span style="color: #ef4444">Weak</span>
+              <span style="color: #059669">Strong</span>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="panel-buttons">
+            <button
+              class="panel-btn btn-green"
+              onclick="togglePoints('positive')"
+            >
+              ✦ Strong Claims
+            </button>
+            <button
+              class="panel-btn btn-red"
+              onclick="togglePoints('negative')"
+            >
+              ⚠ Weak Points
+            </button>
+          </div>
+
+          <!-- Points reveal -->
+          <div class="points-box hidden" id="positivePoints"></div>
+          <div class="points-box hidden" id="negativePoints"></div>
+        </div>
+      </aside>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
 </html>
