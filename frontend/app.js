@@ -326,7 +326,7 @@ function appendBotMessage(text, category = "", save = true) {
     </div>
   `;
   chatWindow.appendChild(div);
-  scrollToBottom(true);
+  scrollToBottom();
 }
 
 function formatResponse(text) {
