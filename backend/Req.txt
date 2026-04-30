@@ -3,3 +3,10 @@ uvicorn
 python-dotenv
 httpx
 pydantic
+sqlalchemy
+alembic
+supabase
+passlib[bcrypt]
+python-jose[cryptography]
+slowapi
+python-multipart
