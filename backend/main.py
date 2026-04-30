@@ -10,7 +10,7 @@ from db import get_db
 from llm_service import call_llm
 from prompt_engine import build_prompt, build_followup_prompt
 from classifier import classify_issue
-from models import User
+from models import Message, Session as ChatSession, User
 
 app = FastAPI(
     title="Be Your Own Lawyer API",
@@ -32,11 +32,12 @@ class LegalQuery(BaseModel):
     problem: str
     conversation_history: Optional[List[dict]] = []
     reply_mode: Optional[str] = 'detail'
+    session_id: Optional[int] = None
 
 class LegalResponse(BaseModel):
     response: str
     detected_category: str
-    session_id: Optional[str] = None
+    session_id: Optional[int] = None
 
 
 class AuthRequest(BaseModel):
@@ -105,17 +106,19 @@ async def login_user(payload: AuthRequest, db: Session = Depends(get_db)):
 async def analyze_legal_problem(
     query: LegalQuery,
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     user_id = current_user.id
 
     # Input validation
-    if not query.problem or len(query.problem.strip()) < 10:
+    user_problem = query.problem.strip()
+    if not user_problem or len(user_problem) < 10:
         raise HTTPException(
             status_code=400,
             detail="Please describe your problem in at least a few words."
         )
     
-    if len(query.problem) > 2000:
+    if len(user_problem) > 2000:
         raise HTTPException(
             status_code=400,
             detail="Please keep your description under 2000 characters."
@@ -127,15 +130,29 @@ async def analyze_legal_problem(
         mode = "detail"
 
     # Step 1: Rule-based classification
-    category = classify_issue(query.problem)
+    category = classify_issue(user_problem)
+
+    if query.session_id is not None:
+        active_session = (
+            db.query(ChatSession)
+            .filter(ChatSession.id == query.session_id, ChatSession.user_id == user_id)
+            .first()
+        )
+        if not active_session:
+            raise HTTPException(status_code=404, detail="Session not found.")
+    else:
+        active_session = ChatSession(user_id=user_id, title=user_problem[:50])
+        db.add(active_session)
+        db.commit()
+        db.refresh(active_session)
     
     # Step 2: Build intelligent prompt
     if query.conversation_history:
         system_prompt, user_message = build_followup_prompt(
-            query.conversation_history, query.problem, mode
+            query.conversation_history, user_problem, mode
         )
     else:
-        system_prompt, user_message = build_prompt(query.problem, category, mode)
+        system_prompt, user_message = build_prompt(user_problem, category, mode)
     
     # Step 3: Call LLM
     llm_response = await call_llm(
@@ -149,9 +166,28 @@ async def analyze_legal_problem(
     print(llm_response)
     print("=== END ===")
 
+    db.add(
+        Message(
+            session_id=active_session.id,
+            role="user",
+            content=user_problem,
+            category=category,
+        )
+    )
+    db.add(
+        Message(
+            session_id=active_session.id,
+            role="assistant",
+            content=llm_response,
+            category=category,
+        )
+    )
+    db.commit()
+
     return LegalResponse(
         response=llm_response,
-        detected_category=category
+        detected_category=category,
+        session_id=active_session.id,
     )
 
 @app.get("/categories")
