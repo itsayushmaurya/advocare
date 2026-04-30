@@ -310,6 +310,7 @@ function appendUserMessage(text, save = true) {
 
 function appendBotMessage(text, category = "", save = true) {
   const chatWindow = document.getElementById("chatWindow");
+  const shouldAutoScroll = isNearBottom(chatWindow);
   const div = document.createElement("div");
   div.className = "message bot-message";
 
@@ -326,11 +327,15 @@ function appendBotMessage(text, category = "", save = true) {
     </div>
   `;
   chatWindow.appendChild(div);
-  scrollToBottom();
+  if (shouldAutoScroll) scrollToBottom();
 }
 
 function formatResponse(text) {
-  return text
+  const safeText = escapeHtml(text);
+
+  return safeText
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, "$1<em>$2</em>")
     .replace(/🔍 ISSUE TYPE/g, "<strong>🔍 ISSUE TYPE</strong>")
     .replace(/📋 STEPS TO TAKE/g, "<strong>📋 STEPS TO TAKE</strong>")
     .replace(
@@ -342,7 +347,7 @@ function formatResponse(text) {
     .replace(/\n/g, "<br>")
     .replace(
       /(https?:\/\/[^\s<]+)/g,
-      '<a href="$1" target="_blank" style="color:#1a56db">$1</a>',
+      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#1a56db">$1</a>',
     );
 }
 
@@ -361,6 +366,7 @@ function formatCategory(cat) {
 
 function showTyping() {
   const chatWindow = document.getElementById("chatWindow");
+  const shouldAutoScroll = isNearBottom(chatWindow);
   const id = "typing-" + Date.now();
   const div = document.createElement("div");
   div.className = "message bot-message";
@@ -373,7 +379,7 @@ function showTyping() {
     </div>
   `;
   chatWindow.appendChild(div);
-  scrollToBottom();
+  if (shouldAutoScroll) scrollToBottom();
   return id;
 }
 
@@ -390,13 +396,24 @@ function setLoading(state) {
   btn.disabled = state;
 }
 
-function scrollToBottom(toTop = false) {
+function isNearBottom(container, threshold = 150) {
+  if (!container) return true;
+  const distanceFromBottom =
+    container.scrollHeight - (container.scrollTop + container.clientHeight);
+  return distanceFromBottom <= threshold;
+}
+
+function scrollToBottom() {
   const cw = document.getElementById("chatWindow");
-  if (toTop) {
-    cw.scrollTop = 0;
-  } else {
+  if (!cw) return;
+
+  requestAnimationFrame(() => {
     cw.scrollTop = cw.scrollHeight;
-  }
+    const lastMessage = cw.lastElementChild;
+    if (lastMessage) {
+      lastMessage.scrollIntoView({ block: "end" });
+    }
+  });
 }
 
 function showError(msg) {
@@ -496,6 +513,9 @@ function updateStrengthPanel(score, positives, negatives) {
     "<ul>" +
     negatives.map((n) => `<li>⚠ ${escapeHtml(n)}</li>`).join("") +
     "</ul>";
+
+  posBox.classList.remove("hidden");
+  negBox.classList.remove("hidden");
 }
 
 function togglePoints(type) {
@@ -504,9 +524,7 @@ function togglePoints(type) {
 
   if (type === "positive") {
     posBox.classList.toggle("hidden");
-    negBox.classList.add("hidden");
   } else {
     negBox.classList.toggle("hidden");
-    posBox.classList.add("hidden");
   }
 }
