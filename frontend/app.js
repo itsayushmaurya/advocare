@@ -1,11 +1,50 @@
 const API_BASE = "http://localhost:8000";
+const TOKEN_KEY = "advocare_token";
 let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
 let replyMode = "detail"; // 'quick' or 'detail'
 
+function getStoredToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+function parseJwtPayload(token) {
+  try {
+    const payloadPart = token.split(".")[1];
+    if (!payloadPart) return null;
+    const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+function isTokenValid(token) {
+  if (!token) return false;
+  const payload = parseJwtPayload(token);
+  if (!payload || typeof payload.exp !== "number") return false;
+  return payload.exp > Math.floor(Date.now() / 1000);
+}
+
+function redirectToAuth() {
+  localStorage.removeItem(TOKEN_KEY);
+  window.location.href = "auth.html";
+}
+
+function ensureAuthenticated() {
+  const token = getStoredToken();
+  if (!isTokenValid(token)) {
+    redirectToAuth();
+    return false;
+  }
+  return true;
+}
+
 // ─── On Page Load ───────────────────────────────────────────
 window.addEventListener("load", () => {
+  if (!ensureAuthenticated()) return;
   renderSidebar();
   loadLastSession();
   updateReplyToggle();
@@ -212,6 +251,11 @@ function handleKey(e) {
 
 async function submitQuery() {
   if (isLoading) return;
+  const token = getStoredToken();
+  if (!isTokenValid(token)) {
+    redirectToAuth();
+    return;
+  }
 
   const input = document.getElementById("userInput").value.trim();
   if (!input || input.length < 10) {
@@ -231,7 +275,10 @@ async function submitQuery() {
   try {
     const response = await fetch(`${API_BASE}/analyze`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
         problem: input,
         conversation_history: conversationHistory,
@@ -240,6 +287,11 @@ async function submitQuery() {
     });
 
     removeTyping(typingId);
+
+    if (response.status === 401) {
+      redirectToAuth();
+      return;
+    }
 
     if (!response.ok) {
       const err = await response.json();

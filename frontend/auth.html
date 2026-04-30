@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advocare – Login</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .auth-shell {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+
+      .auth-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .auth-subtitle {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .auth-toggle {
+        margin-top: 18px;
+        display: flex;
+        gap: 8px;
+      }
+
+      .auth-toggle button {
+        flex: 1;
+      }
+
+      .auth-form {
+        margin-top: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .auth-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .auth-input {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .auth-input:focus {
+        border-color: var(--primary);
+      }
+
+      .auth-error {
+        margin-top: 8px;
+        color: #ef4444;
+        font-size: 13px;
+        min-height: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">⚖️</span>
+          <div>
+            <h1>Advocare</h1>
+            <p>Free AI Legal Guidance for Every Indian</p>
+          </div>
+        </div>
+        <div class="badge">🇮🇳 India Specific</div>
+      </div>
+    </header>
+
+    <main class="auth-shell">
+      <section class="auth-card">
+        <h2 class="auth-title" id="authTitle">Welcome back</h2>
+        <p class="auth-subtitle" id="authSubtitle">
+          Login to continue your legal assistance.
+        </p>
+
+        <div class="auth-toggle">
+          <button
+            id="loginToggle"
+            class="toggle-btn active"
+            onclick="setMode('login')"
+          >
+            Login
+          </button>
+          <button id="registerToggle" class="toggle-btn" onclick="setMode('register')">
+            Register
+          </button>
+        </div>
+
+        <form class="auth-form" onsubmit="handleAuth(event)">
+          <label class="auth-label" for="emailInput">Email</label>
+          <input
+            id="emailInput"
+            class="auth-input"
+            type="email"
+            placeholder="you@example.com"
+            required
+          />
+
+          <label class="auth-label" for="passwordInput">Password</label>
+          <input
+            id="passwordInput"
+            class="auth-input"
+            type="password"
+            placeholder="Enter your password"
+            minlength="6"
+            required
+          />
+
+          <button id="submitBtn" class="send-btn" type="submit">Login</button>
+        </form>
+
+        <p class="auth-error" id="authError"></p>
+      </section>
+    </main>
+
+    <script>
+      const API_BASE = "http://localhost:8000";
+      const TOKEN_KEY = "advocare_token";
+      let mode = "login";
+
+      function parseJwtPayload(token) {
+        try {
+          const payloadPart = token.split(".")[1];
+          if (!payloadPart) return null;
+          const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+          const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+          return JSON.parse(atob(padded));
+        } catch {
+          return null;
+        }
+      }
+
+      function isTokenValid(token) {
+        if (!token) return false;
+        const payload = parseJwtPayload(token);
+        if (!payload || typeof payload.exp !== "number") return false;
+        return payload.exp > Math.floor(Date.now() / 1000);
+      }
+
+      function setMode(nextMode) {
+        mode = nextMode;
+        const isLogin = mode === "login";
+        document.getElementById("loginToggle").classList.toggle("active", isLogin);
+        document.getElementById("registerToggle").classList.toggle("active", !isLogin);
+        document.getElementById("submitBtn").textContent = isLogin ? "Login" : "Create Account";
+        document.getElementById("authTitle").textContent = isLogin
+          ? "Welcome back"
+          : "Create your account";
+        document.getElementById("authSubtitle").textContent = isLogin
+          ? "Login to continue your legal assistance."
+          : "Register to start using Advocare.";
+        document.getElementById("authError").textContent = "";
+      }
+
+      async function handleAuth(event) {
+        event.preventDefault();
+        const email = document.getElementById("emailInput").value.trim();
+        const password = document.getElementById("passwordInput").value;
+        const errorEl = document.getElementById("authError");
+        const submitBtn = document.getElementById("submitBtn");
+
+        errorEl.textContent = "";
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch(`${API_BASE}/${mode}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || "Authentication failed.");
+          }
+
+          if (!data.access_token) {
+            throw new Error("No token returned by server.");
+          }
+
+          localStorage.setItem(TOKEN_KEY, data.access_token);
+          window.location.href = "index.html";
+        } catch (error) {
+          errorEl.textContent =
+            error.message || "Could not authenticate. Please try again.";
+        } finally {
+          submitBtn.disabled = false;
+        }
+      }
+
+      window.addEventListener("load", () => {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (isTokenValid(token)) {
+          window.location.href = "index.html";
+          return;
+        }
+        setMode("login");
+      });
+    </script>
+  </body>
+</html>
