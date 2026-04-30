@@ -58,18 +58,19 @@ RESPONSE FORMAT (always follow this exactly):
 💡 IMPORTANT TIP
 [One practical tip most people don't know about]
 
-IMPORTANT: You MUST end your response with exactly these two lines:
----CASE_ANALYSIS_END---
-
-No text after ---CASE_ANALYSIS_END---. It must be the absolute last line.
-
 ---CASE_ANALYSIS_START---
-STRENGTH_SCORE: [0-100]
+STRENGTH_SCORE: [an integer from 0 to 100]
 POSITIVE_POINTS:
 - [point]
 NEGATIVE_POINTS:
 - [point]
 ---CASE_ANALYSIS_END---
+
+IMPORTANT:
+1. The hidden case analysis block must be included exactly once.
+2. The visible answer must come first, then the hidden block must be the final content in the response.
+3. Replace the score placeholder with one real integer value, such as 72.
+4. Do not include any text after ---CASE_ANALYSIS_END---.
 """
 
     user_message = f"""User's Problem: {user_problem}
@@ -104,13 +105,8 @@ RULES:
 
 Always end your response with this EXACT block, no exceptions:
 
-IMPORTANT: You MUST end your response with exactly these two lines:
----CASE_ANALYSIS_END---
-
-No text after ---CASE_ANALYSIS_END---. It must be the absolute last line.
-
 ---CASE_ANALYSIS_START---
-STRENGTH_SCORE: [0-100]
+STRENGTH_SCORE: [an integer from 0 to 100]
 POSITIVE_POINTS:
 - [strong point from everything user has shared]
 - [another strong point]
@@ -118,5 +114,11 @@ NEGATIVE_POINTS:
 - [weak point or missing evidence]
 - [another weak point]
 ---CASE_ANALYSIS_END---
+
+IMPORTANT:
+1. The hidden case analysis block must be included exactly once.
+2. The visible answer must come first, then the hidden block must be the final content in the response.
+3. Replace the score placeholder with one real integer value, such as 72.
+4. Do not include any text after ---CASE_ANALYSIS_END---.
 """
     return system_prompt, new_message

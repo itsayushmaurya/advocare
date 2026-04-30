@@ -50,7 +50,8 @@ async def call_llm(system_prompt: str, user_message: str, history: list = []) ->
 
 def get_fallback_response(error_type: str) -> str:
     messages = {
-        "timeout": """🔍 ISSUE TYPE\nUnable to process at this time.
+    "timeout": """🔍 ISSUE TYPE
+Unable to process at this time.
 
 📋 STEPS TO TAKE
 1. Please try again in a moment
@@ -65,12 +66,34 @@ def get_fallback_response(error_type: str) -> str:
 - You have the right to free legal aid if you cannot afford a lawyer (Article 39A)
 
 💡 IMPORTANT TIP
-NALSA provides completely free legal assistance to anyone who needs it.""",
-        
-        "api_error": """We're experiencing a technical issue. Please try again shortly.
-For immediate help: Call 15100 (Free Legal Aid) or 100 (Police Emergency).""",
-        
-        "unknown": """Something went wrong. Please refresh and try again.
-For urgent matters: nalsa.gov.in | Helpline: 15100"""
+NALSA provides completely free legal assistance to anyone who needs it.
+
+---CASE_ANALYSIS_START---
+STRENGTH_SCORE: 0
+POSITIVE_POINTS:
+- The user can still take immediate emergency steps
+NEGATIVE_POINTS:
+- The request could not be processed by the backend
+---CASE_ANALYSIS_END---""",
+    "api_error": """We're experiencing a technical issue. Please try again shortly.
+For immediate help: Call 15100 (Free Legal Aid) or 100 (Police Emergency).
+
+---CASE_ANALYSIS_START---
+STRENGTH_SCORE: 0
+POSITIVE_POINTS:
+- The user can still contact official helplines
+NEGATIVE_POINTS:
+- The request could not be processed by the backend
+---CASE_ANALYSIS_END---""",
+    "unknown": """Something went wrong. Please refresh and try again.
+For urgent matters: nalsa.gov.in | Helpline: 15100
+
+---CASE_ANALYSIS_START---
+STRENGTH_SCORE: 0
+POSITIVE_POINTS:
+- The user can still contact official helplines
+NEGATIVE_POINTS:
+- The request could not be processed by the backend
+---CASE_ANALYSIS_END---""",
     }
     return messages.get(error_type, messages["unknown"])
