@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -48,6 +49,21 @@ class AuthRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class SessionListItem(BaseModel):
+    id: int
+    title: str
+    created_at: datetime
+
+
+class MessageItem(BaseModel):
+    id: int
+    session_id: int
+    role: str
+    content: str
+    category: str
+    created_at: datetime
 
 
 # --- Routes ---
@@ -189,6 +205,43 @@ async def analyze_legal_problem(
         detected_category=category,
         session_id=active_session.id,
     )
+
+
+@app.get("/sessions", response_model=List[SessionListItem])
+async def get_user_sessions(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    sessions = (
+        db.query(ChatSession)
+        .filter(ChatSession.user_id == current_user.id)
+        .order_by(ChatSession.created_at.desc())
+        .all()
+    )
+    return sessions
+
+
+@app.get("/sessions/{session_id}/messages", response_model=List[MessageItem])
+async def get_session_messages(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    target_session = (
+        db.query(ChatSession)
+        .filter(ChatSession.id == session_id, ChatSession.user_id == current_user.id)
+        .first()
+    )
+    if not target_session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    messages = (
+        db.query(Message)
+        .filter(Message.session_id == session_id)
+        .order_by(Message.created_at.asc())
+        .all()
+    )
+    return messages
 
 @app.get("/categories")
 def get_categories():
