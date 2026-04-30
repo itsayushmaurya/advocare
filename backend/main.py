@@ -27,7 +27,7 @@ app.add_middleware(
 class LegalQuery(BaseModel):
     problem: str
     conversation_history: Optional[List[dict]] = []
-    reply_mode: Optional[str] = 'quick'
+    reply_mode: Optional[str] = 'detail'
 
 class LegalResponse(BaseModel):
     response: str
@@ -60,16 +60,21 @@ async def analyze_legal_problem(query: LegalQuery):
             detail="Please keep your description under 2000 characters."
         )
     
+    # Normalize response mode
+    mode = (query.reply_mode or "detail").strip().lower()
+    if mode not in {"quick", "detail"}:
+        mode = "detail"
+
     # Step 1: Rule-based classification
     category = classify_issue(query.problem)
     
     # Step 2: Build intelligent prompt
     if query.conversation_history:
         system_prompt, user_message = build_followup_prompt(
-            query.conversation_history, query.problem, query.reply_mode
+            query.conversation_history, query.problem, mode
         )
     else:
-        system_prompt, user_message = build_prompt(query.problem, category, query.reply_mode)
+        system_prompt, user_message = build_prompt(query.problem, category, mode)
     
     # Step 3: Call LLM
     llm_response = await call_llm(

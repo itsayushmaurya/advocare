@@ -2,7 +2,7 @@ const API_BASE = "http://localhost:8000";
 let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
-let replyMode = "quick"; // 'quick' or 'detail'
+let replyMode = "detail"; // 'quick' or 'detail'
 
 // ─── On Page Load ───────────────────────────────────────────
 window.addEventListener("load", () => {
@@ -502,20 +502,17 @@ function updateStrengthPanel(score, positives, negatives) {
   const posBox = document.getElementById("positivePoints");
   const negBox = document.getElementById("negativePoints");
 
-  posBox.className = "points-box green-box hidden";
+  posBox.className = "points-box green-box";
   posBox.innerHTML =
     "<ul>" +
     positives.map((p) => `<li>✦ ${escapeHtml(p)}</li>`).join("") +
     "</ul>";
 
-  negBox.className = "points-box red-box hidden";
+  negBox.className = "points-box red-box";
   negBox.innerHTML =
     "<ul>" +
     negatives.map((n) => `<li>⚠ ${escapeHtml(n)}</li>`).join("") +
     "</ul>";
-
-  posBox.classList.remove("hidden");
-  negBox.classList.remove("hidden");
 }
 
 function togglePoints(type) {

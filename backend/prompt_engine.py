@@ -1,7 +1,33 @@
 from legal_links import LEGAL_LINKS
 
-def build_prompt(user_problem: str, detected_category: str, reply_mode: str = 'quick') -> str:
-    # Inject relevant official links based on detected category
+
+def _normalize_reply_mode(reply_mode: str) -> str:
+    return "quick" if reply_mode == "quick" else "detail"
+
+
+def _mode_instruction(reply_mode: str) -> str:
+    mode = _normalize_reply_mode(reply_mode)
+    if mode == "quick":
+        return """QUICK MODE (MANDATORY):
+- Keep the response brief and action-first.
+- In 📋 STEPS TO TAKE, provide only 2 to 3 numbered steps total.
+- No elaboration under steps. Keep each step concise.
+- In 🏛️ WHERE TO FILE COMPLAINT, include only one most relevant official portal and exactly one helpline number.
+- In ⚖️ YOUR RIGHTS, include only the most critical 1 to 2 rights.
+- In 💡 IMPORTANT TIP, include one short practical tip only."""
+    return """DETAILED MODE (MANDATORY):
+- Give a thorough step-by-step response.
+- In 📋 STEPS TO TAKE, explain each step clearly and practically.
+- In 🏛️ WHERE TO FILE COMPLAINT, include all relevant official portals/authorities and helplines.
+- In ⚖️ YOUR RIGHTS, include all relevant rights in simple language.
+- In 💡 IMPORTANT TIP, include practical tips on evidence, documents, timeline, and escalation."""
+
+
+def build_prompt(
+    user_problem: str,
+    detected_category: str,
+    reply_mode: str = "detail",
+) -> tuple:
     links_context = ""
     if detected_category in LEGAL_LINKS:
         info = LEGAL_LINKS[detected_category]
@@ -11,30 +37,26 @@ Relevant Official Resource:
 - Helpline: {info['helpline']}
 - Description: {info['description']}
 """
-    
-    always_include = f"""
+
+    always_include = """
 Always mention these as fallback:
 - Free Legal Aid: nalsa.gov.in | Helpline: 15100
 - Police Emergency: 100
 """
 
-    # Add reply mode instruction
-    if reply_mode == 'quick':
-        reply_instruction = "Reply in a short, quick, relevant way as if you are a lawyer giving brief advice. Avoid unnecessary detail."
-    else:
-        reply_instruction = "Reply in a detailed, step-by-step, well-formatted way as if you are a lawyer explaining the full process."
+    reply_instruction = _mode_instruction(reply_mode)
 
     system_prompt = f"""You are an AI legal assistant helping common Indian citizens understand their legal rights and take action. Your job is to give practical, clear, and actionable guidance - not vague advice.
 
 {reply_instruction}
 
 RULES:
-1. Always respond in this EXACT structured format using these exact headers
-2. Use simple language - avoid legal jargon
-3. Be specific to Indian law and Indian official systems
-4. Number all steps clearly
-5. Be empathetic but direct
-6. If the issue seems serious or dangerous, prioritize safety first
+1. Always respond in this EXACT structured format using these exact headers.
+2. Use simple language - avoid legal jargon.
+3. Be specific to Indian law and Indian official systems only.
+4. Number all steps clearly.
+5. Be empathetic but direct.
+6. If the issue seems serious or dangerous, prioritize safety first.
 
 RESPONSE FORMAT (always follow this exactly):
 
@@ -42,21 +64,19 @@ RESPONSE FORMAT (always follow this exactly):
 [One line describing the type of legal issue]
 
 📋 STEPS TO TAKE
-1. [First immediate action]
-2. [Second action]
-3. [Continue as needed - minimum 4 steps, maximum 7]
+1. [Action step]
+2. [Action step]
+3. [Add only if needed by selected mode]
 
 🏛️ WHERE TO FILE COMPLAINT
 - [Platform/authority name]: [URL or address]
 - [Helpline if available]: [Number]
 
 ⚖️ YOUR RIGHTS
-- [Right 1 in simple language]
-- [Right 2]
-- [Add more as relevant]
+- [Rights in simple language]
 
 💡 IMPORTANT TIP
-[One practical tip most people don't know about]
+[Practical tip]
 
 ---CASE_ANALYSIS_START---
 STRENGTH_SCORE: [an integer from 0 to 100]
@@ -78,17 +98,17 @@ IMPORTANT:
 {links_context}
 {always_include}
 
-Now provide structured legal guidance following the exact format above."""
+Now provide structured legal guidance following the exact format above and obey the selected mode strictly."""
 
     return system_prompt, user_message
 
 
-def build_followup_prompt(conversation_history: list, new_message: str, reply_mode: str = 'quick') -> tuple:
-    # Add reply mode instruction
-    if reply_mode == 'quick':
-        reply_instruction = "Reply in a short, quick, relevant way as if you are a lawyer giving brief advice. Avoid unnecessary detail."
-    else:
-        reply_instruction = "Reply in a detailed, step-by-step, well-formatted way as if you are a lawyer explaining the full process."
+def build_followup_prompt(
+    conversation_history: list,
+    new_message: str,
+    reply_mode: str = "detail",
+) -> tuple:
+    reply_instruction = _mode_instruction(reply_mode)
 
     system_prompt = f"""You are an AI legal assistant helping Indian citizens with their legal problems.
 
@@ -97,11 +117,11 @@ The user is continuing a conversation. Answer their follow-up question clearly a
 {reply_instruction}
 
 RULES:
-1. Use simple language, no legal jargon
-2. Be specific to Indian law
-3. Re-evaluate the full case strength based on ALL information shared so far
-4. Write your reply as a precise, human-like Indian lawyer: clear, relevant, empathetic, and well-formatted. Avoid generic or robotic language. Use proper grammar and structure. Format your response for easy reading.
-5. Always end with the case analysis block - this is mandatory
+1. Use simple language, no legal jargon.
+2. Be specific to Indian law.
+3. Re-evaluate the full case strength based on ALL information shared so far.
+4. Write your reply as a precise, human-like Indian lawyer: clear, relevant, empathetic, and well-formatted.
+5. Always end with the case analysis block - this is mandatory.
 
 Always end your response with this EXACT block, no exceptions:
 
