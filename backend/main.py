@@ -5,7 +5,7 @@ from typing import Optional, List
 import uvicorn
 from sqlalchemy.orm import Session
 
-from auth import create_access_token, hash_password, verify_password
+from auth import create_access_token, get_current_user, hash_password, verify_password
 from db import get_db
 from llm_service import call_llm
 from prompt_engine import build_prompt, build_followup_prompt
@@ -102,7 +102,12 @@ async def login_user(payload: AuthRequest, db: Session = Depends(get_db)):
 
 
 @app.post("/analyze", response_model=LegalResponse)
-async def analyze_legal_problem(query: LegalQuery):
+async def analyze_legal_problem(
+    query: LegalQuery,
+    current_user: User = Depends(get_current_user),
+):
+    user_id = current_user.id
+
     # Input validation
     if not query.problem or len(query.problem.strip()) < 10:
         raise HTTPException(
