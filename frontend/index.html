@@ -22,10 +22,6 @@
           </div>
         </div>
         <div style="display: flex; gap: 16px; align-items: center;">
-          <div class="language-toggle">
-            <button id="langEn" class="lang-btn active" onclick="setLanguage('en')">English</button>
-            <button id="langHi" class="lang-btn" onclick="setLanguage('hi')">हिंदी</button>
-          </div>
           <div class="badge">🇮🇳 India Specific</div>
         </div>
       </div>
@@ -34,6 +30,14 @@
     <div class="app-layout">
       <button class="hamburger-menu" id="hamburger" onclick="toggleSidebar()">☰</button>
       <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebarCollapse()" title="Collapse sidebar">
+            ◀
+          </button>
+          <button class="sidebar-new-chat-icon" onclick="startNewSession()" title="New Chat">
+            +
+          </button>
+        </div>
         <button class="new-chat-btn" onclick="startNewSession()">
           + New Chat
         </button>
@@ -97,33 +101,38 @@
             ></textarea>
             <div class="input-actions">
               <span class="char-count" id="charCount">0 / 2000</span>
-              <div class="reply-toggle">
-                <button
-                  id="quickBtn"
-                  class="toggle-btn"
-                  onclick="setReplyMode('quick')"
-                >
-                  Quick
+              <div class="input-actions-right">
+                <button class="settings-menu-btn" id="settingsMenuBtn" onclick="toggleSettingsMenu()" title="Settings">
+                  ⚙️
                 </button>
-                <button
-                  id="detailBtn"
-                  class="toggle-btn active"
-                  onclick="setReplyMode('detail')"
-                >
-                  Detailed
+                <button class="send-btn" id="sendBtn" onclick="submitQuery()">
+                  <span id="btnText">Get Legal Help →</span>
+                  <span id="btnLoader" class="hidden">Analyzing...</span>
                 </button>
               </div>
-              <button class="send-btn" id="sendBtn" onclick="submitQuery()">
-                <span id="btnText">Get Legal Help →</span>
-                <span id="btnLoader" class="hidden">Analyzing...</span>
-              </button>
             </div>
-            <div class="info-bar">
-              <span>🆓 100% Free</span>
-              <span>🔒 Private</span>
-              <span>📱 Works on Mobile</span>
-              <span>🇮🇳 Indian Law</span>
+            
+            <!-- Settings Menu Popup -->
+            <div class="settings-menu hidden" id="settingsMenu">
+              <div class="settings-menu-header">Settings</div>
+              
+              <div class="settings-option">
+                <label class="settings-label">Output Type</label>
+                <div class="settings-toggle-group">
+                  <button class="settings-toggle" id="quickToggle" onclick="setReplyMode('quick')">Quick</button>
+                  <button class="settings-toggle active" id="detailToggle" onclick="setReplyMode('detail')">Detailed</button>
+                </div>
+              </div>
+              
+              <div class="settings-option">
+                <label class="settings-label">Language</label>
+                <div class="settings-toggle-group">
+                  <button class="settings-toggle active" id="langEnToggle" onclick="setLanguage('en')">English</button>
+                  <button class="settings-toggle" id="langHiToggle" onclick="setLanguage('hi')">हिंदी</button>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
       </main>
@@ -181,5 +190,86 @@
     </div>
 
     <script src="app.js"></script>
-  </body>
-</html>
+    
+    <!-- Sidebar Collapse & Settings Menu Functions -->
+    <script>
+      function toggleSidebarCollapse() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('collapsed');
+        // Store preference in localStorage
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        localStorage.setItem('sidebarCollapsed', isCollapsed);
+      }
+
+      function toggleSettingsMenu() {
+        const menu = document.getElementById('settingsMenu');
+        menu.classList.toggle('hidden');
+        
+        // Close menu when clicking outside
+        if (!menu.classList.contains('hidden')) {
+          document.addEventListener('click', closeSettingsMenuOnClickOutside);
+        }
+      }
+
+      function closeSettingsMenuOnClickOutside(event) {
+        const menu = document.getElementById('settingsMenu');
+        const btn = document.getElementById('settingsMenuBtn');
+        
+        if (!menu.contains(event.target) && !btn.contains(event.target)) {
+          menu.classList.add('hidden');
+          document.removeEventListener('click', closeSettingsMenuOnClickOutside);
+        }
+      }
+
+      // Update settings toggle buttons when modes change
+      function updateSettingsUI() {
+        // Get current mode from localStorage
+        const mode = localStorage.getItem('replyMode') || 'detail';
+        const language = localStorage.getItem('language') || 'en';
+        
+        // Update output type buttons
+        const quickToggle = document.getElementById('quickToggle');
+        const detailToggle = document.getElementById('detailToggle');
+        if (mode === 'quick') {
+          quickToggle?.classList.add('active');
+          detailToggle?.classList.remove('active');
+        } else {
+          detailToggle?.classList.add('active');
+          quickToggle?.classList.remove('active');
+        }
+        
+        // Update language buttons
+        const langEnToggle = document.getElementById('langEnToggle');
+        const langHiToggle = document.getElementById('langHiToggle');
+        if (language === 'hi') {
+          langHiToggle?.classList.add('active');
+          langEnToggle?.classList.remove('active');
+        } else {
+          langEnToggle?.classList.add('active');
+          langHiToggle?.classList.remove('active');
+        }
+      }
+
+      // Restore sidebar collapsed state on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        const sidebar = document.getElementById('sidebar');
+        if (isCollapsed) {
+          sidebar.classList.add('collapsed');
+        }
+        updateSettingsUI();
+      });
+
+      // Update settings UI whenever mode or language changes
+      const originalSetReplyMode = window.setReplyMode;
+      window.setReplyMode = function(mode) {
+        if (originalSetReplyMode) originalSetReplyMode(mode);
+        updateSettingsUI();
+      };
+
+      const originalSetLanguage = window.setLanguage;
+      window.setLanguage = function(lang) {
+        if (originalSetLanguage) originalSetLanguage(lang);
+        updateSettingsUI();
+      };
+    </script>
