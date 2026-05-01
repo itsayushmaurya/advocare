@@ -674,3 +674,26 @@ function generatePDF(text) {
   
   doc.save("legal-advice.pdf");
 }
+
+// ─── Language & UI Controls ─────────────────────────────────
+function setLanguage(lang) {
+  language = lang;
+  updateLanguageToggle();
+}
+
+function updateLanguageToggle() {
+  const enBtn = document.getElementById("langEn");
+  const hiBtn = document.getElementById("langHi");
+  if (language === "en") {
+    enBtn?.classList.add("active");
+    hiBtn?.classList.remove("active");
+  } else {
+    hiBtn?.classList.add("active");
+    enBtn?.classList.remove("active");
+  }
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  sidebar?.classList.toggle("active");
+}
