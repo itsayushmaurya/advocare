@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile - Advocare</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .profile-page {
+        flex: 1;
+        overflow: auto;
+        padding: 48px 24px;
+      }
+
+      .profile-panel {
+        width: min(760px, 100%);
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+      }
+
+      .profile-hero {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 28px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .profile-avatar-large {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--elevated);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 24px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .profile-title h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+
+      .profile-title p {
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+
+      .profile-form {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        padding: 28px;
+      }
+
+      .profile-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .profile-field.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .profile-field label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .profile-field input,
+      .profile-field textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 11px 12px;
+        background: var(--elevated);
+        color: var(--text);
+        font: inherit;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .profile-field textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+
+      .profile-field input:focus,
+      .profile-field textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
+      }
+
+      .profile-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding-top: 6px;
+      }
+
+      .profile-btn {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 16px;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .profile-btn.cancel {
+        background: transparent;
+        color: var(--text-secondary);
+      }
+
+      .profile-btn.save {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+      }
+
+      @media (max-width: 640px) {
+        .profile-page {
+          padding: 24px 16px;
+        }
+
+        .profile-hero,
+        .profile-form {
+          padding: 20px;
+        }
+
+        .profile-form {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo" onclick="window.location.href = 'index.html';" style="cursor: pointer;">
+          <span class="logo-icon">⚖️</span>
+          <div>
+            <h1>Advocare</h1>
+            <p>Free AI Legal Guidance for Every Indian</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="profile-page">
+      <section class="profile-panel">
+        <div class="profile-hero">
+          <div class="profile-avatar-large">AM</div>
+          <div class="profile-title">
+            <h2>Ayush Maurya</h2>
+            <p>@ayushmaurya</p>
+          </div>
+        </div>
+
+        <form class="profile-form">
+          <div class="profile-field">
+            <label for="displayName">Display Name</label>
+            <input id="displayName" type="text" value="Ayush Maurya" />
+          </div>
+
+          <div class="profile-field">
+            <label for="username">Username</label>
+            <input id="username" type="text" value="ayushmaurya" />
+          </div>
+
+          <div class="profile-field">
+            <label for="email">Email</label>
+            <input id="email" type="email" value="ayush.maurya@example.com" />
+          </div>
+
+          <div class="profile-field">
+            <label for="phone">Phone</label>
+            <input id="phone" type="tel" value="+91 98765 43210" />
+          </div>
+
+          <div class="profile-field full-width">
+            <label for="bio">Bio</label>
+            <textarea id="bio">Legal guidance user on Advocare.</textarea>
+          </div>
+
+          <div class="profile-actions">
+            <button class="profile-btn cancel" type="button">Cancel</button>
+            <button class="profile-btn save" type="button">Save</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

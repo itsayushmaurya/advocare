@@ -805,6 +805,11 @@ function toggleProfileMenu(event) {
   dropdown?.classList.toggle("hidden");
 }
 
+function openProfilePage(event) {
+  event.stopPropagation();
+  window.location.href = "profile.html";
+}
+
 document.addEventListener("click", function (event) {
   const profileContainer = document.getElementById("profileContainer");
   const dropdown = document.getElementById("profileDropdown");
