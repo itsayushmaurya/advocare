@@ -23,10 +23,17 @@ def _mode_instruction(reply_mode: str) -> str:
 - In 💡 IMPORTANT TIP, include practical tips on evidence, documents, timeline, and escalation."""
 
 
+def _language_instruction(language: str) -> str:
+    if language == "hi":
+        return """LANGUAGE (MANDATORY): Respond entirely in simple, conversational Hindi. Use everyday Hindi language that common people understand. Avoid English words. Make your response feel like a conversation with a trusted Indian lawyer speaking Hindi."""
+    return """LANGUAGE (MANDATORY): Respond in English."""
+
+
 def build_prompt(
     user_problem: str,
     detected_category: str,
     reply_mode: str = "detail",
+    language: str = "en",
 ) -> tuple:
     links_context = ""
     if detected_category in LEGAL_LINKS:
@@ -45,10 +52,13 @@ Always mention these as fallback:
 """
 
     reply_instruction = _mode_instruction(reply_mode)
+    language_instruction = _language_instruction(language)
 
     system_prompt = f"""You are an AI legal assistant helping common Indian citizens understand their legal rights and take action. Your job is to give practical, clear, and actionable guidance - not vague advice.
 
 {reply_instruction}
+
+{language_instruction}
 
 RULES:
 1. Always respond in this EXACT structured format using these exact headers.
@@ -107,14 +117,18 @@ def build_followup_prompt(
     conversation_history: list,
     new_message: str,
     reply_mode: str = "detail",
+    language: str = "en",
 ) -> tuple:
     reply_instruction = _mode_instruction(reply_mode)
+    language_instruction = _language_instruction(language)
 
     system_prompt = f"""You are an AI legal assistant helping Indian citizens with their legal problems.
 
 The user is continuing a conversation. Answer their follow-up question clearly and practically.
 
 {reply_instruction}
+
+{language_instruction}
 
 RULES:
 1. Use simple language, no legal jargon.

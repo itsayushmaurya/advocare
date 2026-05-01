@@ -4,6 +4,7 @@ let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
 let replyMode = "detail"; // 'quick' or 'detail'
+let language = "en"; // 'en' or 'hi'
 
 function getStoredToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -48,11 +49,30 @@ window.addEventListener("load", async () => {
   await renderSidebar();
   await loadLastSession();
   updateReplyToggle();
+  updateLanguageToggle();
 });
 
 function setReplyMode(mode) {
   replyMode = mode;
   updateReplyToggle();
+}
+
+function setLanguage(lang) {
+  language = lang;
+  updateLanguageToggle();
+}
+
+function updateLanguageToggle() {
+  const enBtn = document.getElementById("langEnBtn");
+  const hiBtn = document.getElementById("langHiBtn");
+  if (!enBtn || !hiBtn) return;
+  if (language === "en") {
+    enBtn.classList.add("active");
+    hiBtn.classList.remove("active");
+  } else {
+    enBtn.classList.remove("active");
+    hiBtn.classList.add("active");
+  }
 }
 
 function updateReplyToggle() {
@@ -270,6 +290,7 @@ async function submitQuery() {
         problem: input,
         conversation_history: conversationHistory,
         reply_mode: replyMode,
+        language: language,
         session_id: currentSessionId,
       }),
     });

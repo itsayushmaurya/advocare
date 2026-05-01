@@ -33,6 +33,7 @@ class LegalQuery(BaseModel):
     problem: str
     conversation_history: Optional[List[dict]] = []
     reply_mode: Optional[str] = 'detail'
+    language: Optional[str] = 'en'
     session_id: Optional[int] = None
 
 class LegalResponse(BaseModel):
@@ -146,6 +147,11 @@ async def analyze_legal_problem(
     if mode not in {"quick", "detail"}:
         mode = "detail"
 
+    # Normalize language
+    lang = (query.language or "en").strip().lower()
+    if lang not in {"en", "hi"}:
+        lang = "en"
+
     # Step 1: Rule-based classification
     category = classify_issue(user_problem)
     urgency = detect_urgency(user_problem)
@@ -167,10 +173,10 @@ async def analyze_legal_problem(
     # Step 2: Build intelligent prompt
     if query.conversation_history:
         system_prompt, user_message = build_followup_prompt(
-            query.conversation_history, user_problem, mode
+            query.conversation_history, user_problem, mode, lang
         )
     else:
-        system_prompt, user_message = build_prompt(user_problem, category, mode)
+        system_prompt, user_message = build_prompt(user_problem, category, mode, lang)
     
     # Step 3: Call LLM
     llm_response = await call_llm(
