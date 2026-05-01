@@ -410,7 +410,7 @@
           </button>
         </div>
 
-        <form class="auth-form" onsubmit="handleAuth(event)">
+        <form id="authForm" class="auth-form">
           <div id="nameFieldContainer" style="display: none;">
             <label class="auth-label" for="nameInput">Full Name</label>
             <input
@@ -698,6 +698,7 @@
            footerText.textContent = "Don't have an account? ";
            footerLink.textContent = "Register";
            footerLink.onclick = () => { setMode("register"); return false; };
+           document.getElementById("submitBtn").disabled = false;
          } else {
            footerText.textContent = "Already have an account? ";
            footerLink.textContent = "Login";
@@ -723,48 +724,25 @@
          checkFormValidity();
        }
 
-      async function handleAuth(event) {
-        event.preventDefault();
+      async function loginUser() {
         const email = document.getElementById("emailInput").value.trim();
         const password = document.getElementById("passwordInput").value;
         const errorEl = document.getElementById("authError");
         const submitBtn = document.getElementById("submitBtn");
 
         errorEl.textContent = "";
+        if (!email || !password) {
+          errorEl.textContent = "Email and password are required.";
+          return;
+        }
+
         submitBtn.disabled = true;
 
         try {
-          let body;
-          if (mode === "login") {
-            body = { email, password };
-          } else {
-            const name = document.getElementById("nameInput").value.trim();
-            const age = document.getElementById("ageInput").value ? parseInt(document.getElementById("ageInput").value) : null;
-            
-            if (!name) {
-              throw new Error("Full name is required.");
-            }
-            if (!email) {
-              throw new Error("Email is required.");
-            }
-            if (!password) {
-              throw new Error("Password is required.");
-            }
-            const privacyCheckbox = document.getElementById("privacyCheckbox");
-            const privacyError = document.getElementById("privacyError");
-            if (!privacyCheckbox.checked) {
-              privacyError.textContent = "You must agree to continue";
-              submitBtn.disabled = false;
-              return;
-            }
-
-            body = { name, email, age, user_type: userType, password };
-          }
-
-          const response = await fetch(`${API_BASE}/${mode}`, {
+          const response = await fetch(`${API_BASE}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
+            body: JSON.stringify({ email, password }),
           });
 
           const data = await response.json();
@@ -793,7 +771,83 @@
         }
       }
 
+      async function registerUser() {
+        const name = document.getElementById("nameInput").value.trim();
+        const email = document.getElementById("emailInput").value.trim();
+        const password = document.getElementById("passwordInput").value;
+        const age = document.getElementById("ageInput").value ? parseInt(document.getElementById("ageInput").value) : null;
+        const errorEl = document.getElementById("authError");
+        const submitBtn = document.getElementById("submitBtn");
+        const privacyCheckbox = document.getElementById("privacyCheckbox");
+        const privacyError = document.getElementById("privacyError");
+
+        errorEl.textContent = "";
+        privacyError.textContent = "";
+
+        if (!name) {
+          errorEl.textContent = "Full name is required.";
+          return;
+        }
+        if (!email) {
+          errorEl.textContent = "Email is required.";
+          return;
+        }
+        if (!password) {
+          errorEl.textContent = "Password is required.";
+          return;
+        }
+        if (!privacyCheckbox.checked) {
+          privacyError.textContent = "You must agree to continue";
+          return;
+        }
+
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch(`${API_BASE}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, age, user_type: userType, password }),
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || "Authentication failed.");
+          }
+
+          if (!data.access_token) {
+            throw new Error("No token returned by server.");
+          }
+
+          localStorage.setItem(TOKEN_KEY, data.access_token);
+          const savedToken = localStorage.getItem(TOKEN_KEY);
+          if (savedToken) {
+            window.location.href = "index.html";
+          } else {
+            throw new Error("Failed to save authentication token.");
+          }
+        } catch (error) {
+          errorEl.textContent =
+            error.message || "Could not authenticate. Please try again.";
+        } finally {
+          submitBtn.disabled = false;
+        }
+      }
+
+      function handleAuth(e) {
+        e.preventDefault();
+
+        if (mode === "login") {
+          loginUser();
+        } else {
+          registerUser();
+        }
+      }
+
       window.addEventListener("load", () => {
+        const form = document.getElementById("authForm");
+        form.addEventListener("submit", handleAuth);
+
         const token = localStorage.getItem(TOKEN_KEY);
         if (isTokenValid(token)) {
           window.location.href = "index.html";
