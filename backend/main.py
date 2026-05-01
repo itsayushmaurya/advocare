@@ -78,6 +78,8 @@ class UserProfileResponse(BaseModel):
     id: int
     name: str
     email: str
+    age: Optional[int] = None
+    user_type: str
 
 
 class SessionListItem(BaseModel):
@@ -167,6 +169,8 @@ async def get_me(current_user: User = Depends(get_current_user)):
         id=current_user.id,
         name=current_user.name,
         email=current_user.email,
+        age=current_user.age,
+        user_type=current_user.user_type,
     )
 
 
