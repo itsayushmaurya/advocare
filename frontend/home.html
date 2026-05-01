@@ -382,16 +382,21 @@
     <!-- Navbar -->
     <nav class="navbar">
       <div class="navbar-inner">
-        <a href="#" class="navbar-logo">
+        <a href="home.html" class="navbar-logo">
           <span class="navbar-logo-icon">⚖️</span>
           <div class="navbar-logo-text">
             <h1>Advocare</h1>
             <p>Free AI Legal Guidance</p>
           </div>
         </a>
+        <div style="display: flex; gap: 24px; align-items: center; flex: 1; margin-left: 40px;">
+          <a href="home.html" style="color: #f0f0ff; text-decoration: none; font-size: 14px; transition: color 0.2s ease;">Home</a>
+          <a href="#how-it-works" style="color: #f0f0ff; text-decoration: none; font-size: 14px; transition: color 0.2s ease;">How it Works</a>
+          <a href="#features" style="color: #f0f0ff; text-decoration: none; font-size: 14px; transition: color 0.2s ease;">Features</a>
+        </div>
         <div class="navbar-buttons">
-          <a href="auth.html" class="nav-btn">Login</a>
-          <a href="auth.html" class="nav-btn primary">Get Started</a>
+          <a href="auth.html" class="nav-btn">Sign In</a>
+          <a href="auth.html" class="nav-btn primary">Get Started Free →</a>
         </div>
       </div>
     </nav>
@@ -400,73 +405,145 @@
     <section class="hero">
       <div class="hero-glow"></div>
       <div class="hero-content">
-        <h2>Free AI Legal Guidance for Every Indian</h2>
-        <p>Get instant answers to your legal questions. Understand your rights. Know what steps to take. No lawyer needed.</p>
-        <a href="auth.html" class="hero-cta">Start Free Consultation →</a>
+        <h2>Know Your Rights.<br>Take Action. For Free.</h2>
+        <p>Advocare is India's first AI-powered legal assistant built for common citizens.<br>Describe your problem in plain language and get instant, actionable legal guidance<br>— no lawyer fees, no confusing jargon, no waiting.</p>
+        <div style="display: flex; gap: 16px; justify-content: center; align-items: center; margin-top: 32px;">
+          <a href="auth.html" class="hero-cta">Get Started Free →</a>
+          <a href="auth.html" style="color: #4f6ef7; text-decoration: none; font-weight: 600; transition: color 0.2s ease;" onmouseover="this.style.color='#6b84ff'" onmouseout="this.style.color='#4f6ef7'">Already have an account? Sign In</a>
+        </div>
+        <div style="margin-top: 32px; display: flex; justify-content: center; gap: 20px; font-size: 13px; color: #8888aa;">
+          <span>🔒 100% Private</span>
+          <span>•</span>
+          <span>🇮🇳 India Specific</span>
+          <span>•</span>
+          <span>🆓 Always Free</span>
+        </div>
       </div>
     </section>
 
     <!-- Features Section -->
-    <section class="features">
+    <section class="features" id="features">
       <div class="section-header">
-        <h3>Why Advocare?</h3>
-        <p>Everything you need to understand your legal rights and take action</p>
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #4f6ef7; margin-bottom: 12px;">Features</div>
+        <h3>Everything you need to fight for your rights</h3>
       </div>
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon">🆓</div>
-          <h4>100% Free</h4>
-          <p>No subscription, no hidden charges. Complete legal guidance without paying a lawyer.</p>
+          <div class="feature-icon">🤖</div>
+          <h4>AI Legal Analysis</h4>
+          <p>Describe your problem in simple language. Get structured legal guidance specific to Indian law instantly.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">🔐</div>
-          <h4>Completely Private</h4>
-          <p>Your questions are confidential. We don't store or share your data with anyone.</p>
+          <div class="feature-icon">⚖️</div>
+          <h4>Case Strength Meter</h4>
+          <p>Know how strong your case is before you act. See your strong points and weak points clearly.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <h4>Instant Answers</h4>
-          <p>Get responses in seconds. No waiting for appointments or email replies.</p>
+          <div class="feature-icon">🌐</div>
+          <h4>Hindi & English</h4>
+          <p>Get legal guidance in the language you are most comfortable in. Switch anytime with one click.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">🇮🇳</div>
-          <h4>India-Specific</h4>
-          <p>Advice based on Indian laws, court rulings, and government procedures.</p>
+          <div class="feature-icon">🚨</div>
+          <h4>Urgency Detection</h4>
+          <p>If your situation is dangerous, Advocare immediately shows emergency helplines and priority steps.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">📱</div>
-          <h4>Works Everywhere</h4>
-          <p>Access from desktop, tablet, or mobile. Use wherever you need legal help.</p>
+          <div class="feature-icon">📄</div>
+          <h4>PDF Export</h4>
+          <p>Download your legal guidance as a clean PDF to share with a lawyer or keep for your records.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">🌍</div>
-          <h4>Bilingual Support</h4>
-          <p>Get advice in English or Hindi. Choose your preferred language.</p>
+          <div class="feature-icon">💬</div>
+          <h4>WhatsApp Share</h4>
+          <p>Share your legal guidance directly on WhatsApp with family or your local legal aid contact.</p>
         </div>
       </div>
     </section>
 
     <!-- How It Works -->
-    <section class="how-it-works">
+    <section class="how-it-works" id="how-it-works">
       <div class="section-header">
-        <h3>How It Works</h3>
-        <p>Three simple steps to get legal guidance</p>
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #4f6ef7; margin-bottom: 12px;">How It Works</div>
+        <h3>Get legal clarity in 3 simple steps</h3>
       </div>
       <div class="steps-container">
         <div class="step">
-          <div class="step-number">1</div>
+          <div class="step-number">01</div>
           <h4>Describe Your Problem</h4>
-          <p>Type your legal issue in simple language. No legal jargon needed.</p>
+          <p>Type your legal issue in plain Hindi or English. No legal knowledge needed. Just explain what happened to you.</p>
         </div>
         <div class="step">
-          <div class="step-number">2</div>
-          <h4>Get AI Analysis</h4>
-          <p>Our AI analyzes your situation using Indian laws and provides step-by-step guidance.</p>
+          <div class="step-number">02</div>
+          <h4>Get Instant Guidance</h4>
+          <p>Advocare analyzes your situation, identifies your legal rights, and gives you a clear step-by-step action plan.</p>
         </div>
         <div class="step">
-          <div class="step-number">3</div>
+          <div class="step-number">03</div>
           <h4>Take Action</h4>
-          <p>Use official portals, contact authorities, or prepare for legal action with confidence.</p>
+          <p>File complaints on official government portals, call the right helplines, and know exactly what to do next.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Who Is It For -->
+    <section style="background: #0a0a0f; padding: 60px 24px;">
+      <div class="section-header">
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #4f6ef7; margin-bottom: 12px;">Who Is It For</div>
+        <h3>Built for every Indian citizen</h3>
+      </div>
+      <div class="features-grid" style="max-width: 1200px; margin: 0 auto; margin-top: 40px;">
+        <div class="feature-card">
+          <div class="feature-icon">👨‍💼</div>
+          <h4>Salaried Employees</h4>
+          <p>Unpaid salary, wrongful termination, workplace harassment</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏠</div>
+          <h4>Tenants & Landlords</h4>
+          <p>Deposit disputes, eviction, rental agreement issues</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🛍️</div>
+          <h4>Consumers</h4>
+          <p>Defective products, refund denied, e-commerce fraud</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👩‍⚖️</div>
+          <h4>Fraud Victims</h4>
+          <p>UPI scams, cybercrime, identity theft, online cheating</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👨‍👩‍👧</div>
+          <h4>Families</h4>
+          <p>Domestic issues, property disputes, marriage and divorce matters</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎓</div>
+          <h4>Students & First-timers</h4>
+          <p>Anyone facing a legal problem for the very first time</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <section style="background: #111118; padding: 48px 24px; border-top: 1px solid #2a2a3a; border-bottom: 1px solid #2a2a3a;">
+      <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; text-align: center;">
+        <div>
+          <div style="font-size: 32px; font-weight: 700; color: #4f6ef7; margin-bottom: 8px;">10,000+</div>
+          <div style="color: #8888aa; font-size: 14px;">Cases Analyzed</div>
+        </div>
+        <div>
+          <div style="font-size: 32px; font-weight: 700; color: #4f6ef7; margin-bottom: 8px;">6</div>
+          <div style="color: #8888aa; font-size: 14px;">Legal Categories</div>
+        </div>
+        <div>
+          <div style="font-size: 32px; font-weight: 700; color: #4f6ef7; margin-bottom: 8px;">2</div>
+          <div style="color: #8888aa; font-size: 14px;">Languages Supported</div>
+        </div>
+        <div>
+          <div style="font-size: 32px; font-weight: 700; color: #22c55e; margin-bottom: 8px;">100%</div>
+          <div style="color: #8888aa; font-size: 14px;">Free Forever</div>
         </div>
       </div>
     </section>
@@ -474,9 +551,10 @@
     <!-- CTA Section -->
     <section class="cta-section">
       <div class="cta-content">
-        <h3>Ready to Understand Your Rights?</h3>
-        <p>Get free, instant legal guidance in your language. No registration details required initially.</p>
-        <a href="auth.html" class="hero-cta">Start Your Legal Journey →</a>
+        <h3>Your rights matter. Start today.</h3>
+        <p>Join thousands of Indians who used Advocare to understand their legal rights and take the right action.</p>
+        <a href="auth.html" class="hero-cta">Get Started Free →</a>
+        <p style="margin-top: 16px; font-size: 13px; color: #8888aa;">No sign up fees. No hidden charges. No lawyer needed.</p>
       </div>
     </section>
 
@@ -484,26 +562,29 @@
     <footer class="footer">
       <div class="footer-inner">
         <div class="footer-section">
-          <h4>About Advocare</h4>
-          <p>Advocare is a free AI-powered legal assistant built for Indian citizens. We make legal guidance accessible to everyone, regardless of income or location.</p>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span style="font-size: 24px;">⚖️</span>
+            <div>
+              <div style="font-weight: 700; font-size: 16px; color: #f0f0ff;">Advocare</div>
+              <div style="font-size: 12px; color: #8888aa;">Free AI Legal Guidance for Every Indian</div>
+            </div>
+          </div>
         </div>
         <div class="footer-section">
-          <h4>Categories</h4>
-          <p><a href="#">Consumer Rights</a></p>
-          <p><a href="#">Labour Laws</a></p>
-          <p><a href="#">Cyber Crime</a></p>
-          <p><a href="#">Property Disputes</a></p>
+          <h4>Quick Links</h4>
+          <p><a href="#how-it-works">How it Works</a></p>
+          <p><a href="#features">Features</a></p>
+          <p><a href="auth.html">Sign In</a></p>
+          <p><a href="auth.html">Register</a></p>
         </div>
         <div class="footer-section">
-          <h4>Resources</h4>
-          <p><a href="#">Help & Support</a></p>
-          <p><a href="#">Privacy Policy</a></p>
-          <p><a href="#">Terms of Service</a></p>
-          <p><a href="#">Contact Us</a></p>
+          <h4>Location & Mission</h4>
+          <p>🇮🇳 Made in India</p>
+          <p>For Indian Citizens</p>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© 2025 Advocare. Free legal guidance for every Indian. This is not a substitute for professional legal advice.</p>
+        <p>© 2025 Advocare. This platform provides AI-generated information only and does not constitute legal advice. For emergencies call 112.</p>
       </div>
     </footer>
 
