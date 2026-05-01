@@ -888,6 +888,10 @@ document.addEventListener("click", function (event) {
   const profileContainer = document.getElementById("profileContainer");
   const dropdown = document.getElementById("profileDropdown");
   if (!profileContainer || !dropdown) return;
+  if (event.target.closest(".profile-menu-item")?.textContent.trim() === "Privacy Policy") {
+    window.location.href = "privacy.html";
+    return;
+  }
   if (!profileContainer.contains(event.target)) {
     dropdown.classList.add("hidden");
   }
