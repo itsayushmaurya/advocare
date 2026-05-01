@@ -27,7 +27,7 @@
       </div>
     </header>
 
-    <div class="app-layout">
+    <div class="app-layout" id="appLayout">
       <button class="hamburger-menu" id="hamburger" onclick="toggleSidebar()">☰</button>
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -193,14 +193,6 @@
     
     <!-- Sidebar Collapse & Settings Menu Functions -->
     <script>
-      function toggleSidebarCollapse() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('collapsed');
-        // Store preference in localStorage
-        const isCollapsed = sidebar.classList.contains('collapsed');
-        localStorage.setItem('sidebarCollapsed', isCollapsed);
-      }
-
       function toggleSettingsMenu() {
         const menu = document.getElementById('settingsMenu');
         menu.classList.toggle('hidden');
@@ -254,14 +246,11 @@
         langHiToggle?.setAttribute('aria-pressed', language === 'hi');
       }
 
-      // Restore sidebar collapsed state on page load
       document.addEventListener('DOMContentLoaded', function() {
-        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-        const sidebar = document.getElementById('sidebar');
-        if (isCollapsed) {
-          sidebar.classList.add('collapsed');
-        }
         updateSettingsUI();
+        if (typeof applySidebarState === 'function') {
+          applySidebarState();
+        }
       });
 
       // Update settings UI whenever mode or language changes

@@ -3,6 +3,7 @@ const TOKEN_KEY = "advocare_token";
 let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
+let isSidebarCollapsed = false;
 let replyMode = normalizeReplyMode(localStorage.getItem("replyMode")); // 'quick' or 'detail'
 let language = normalizeLanguage(localStorage.getItem("language")); // 'en' or 'hi'
 
@@ -54,11 +55,28 @@ function ensureAuthenticated() {
 // ─── On Page Load ───────────────────────────────────────────
 window.addEventListener("load", async () => {
   if (!ensureAuthenticated()) return;
+  applySidebarState();
   await renderSidebar();
   await loadLastSession();
   updateReplyToggle();
   updateLanguageToggle();
 });
+
+function applySidebarState() {
+  const appLayout = document.getElementById("appLayout");
+  const toggleBtn = document.getElementById("sidebarToggle");
+  if (!appLayout || !toggleBtn) return;
+
+  appLayout.classList.toggle("sidebar-collapsed", isSidebarCollapsed);
+  toggleBtn.textContent = isSidebarCollapsed ? "▶" : "◀";
+  toggleBtn.title = isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar";
+  toggleBtn.setAttribute("aria-label", toggleBtn.title);
+}
+
+function toggleSidebarCollapse() {
+  isSidebarCollapsed = !isSidebarCollapsed;
+  applySidebarState();
+}
 
 function setReplyMode(mode) {
   replyMode = normalizeReplyMode(mode);
