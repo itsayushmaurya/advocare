@@ -608,18 +608,31 @@ function togglePoints(type) {
   }
 }
 
+function stripEmojis(text) {
+  return text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]/gu, '').trim();
+}
+
+function containsDevanagari(text) {
+  return /[\u0900-\u097F]/.test(text);
+}
+
 async function exportToPDF(msgId, encodedText) {
   try {
     const text = decodeURIComponent(encodedText);
     
-    if (typeof window.jsPDF === "undefined") {
-      const script = document.createElement("script");
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      script.onload = () => generatePDF(text);
-      script.onerror = () => alert("Failed to load PDF library");
-      document.head.appendChild(script);
+    if (containsDevanagari(text)) {
+      generateHTMLPDF(text);
     } else {
-      generatePDF(text);
+      const cleanText = stripEmojis(text);
+      if (typeof window.jsPDF === "undefined") {
+        const script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+        script.onload = () => generateJsPDF(cleanText);
+        script.onerror = () => alert("Failed to load PDF library");
+        document.head.appendChild(script);
+      } else {
+        generateJsPDF(cleanText);
+      }
     }
   } catch (err) {
     alert("Error exporting PDF");
@@ -627,7 +640,7 @@ async function exportToPDF(msgId, encodedText) {
   }
 }
 
-function generatePDF(text) {
+function generateJsPDF(text) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   
@@ -640,7 +653,7 @@ function generatePDF(text) {
   
   doc.setFontSize(20);
   doc.setTextColor(26, 86, 219);
-  doc.text("⚖️ Advocare", margin, margin + 5);
+  doc.text("Advocare", margin, margin + 5);
   
   doc.setFontSize(10);
   doc.setTextColor(100, 116, 139);
@@ -669,10 +682,94 @@ function generatePDF(text) {
   
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text("⚠️ Disclaimer: This is AI-generated information and NOT legal advice.", margin, pageHeight - 14);
+  doc.text("Disclaimer: This is AI-generated information and NOT legal advice.", margin, pageHeight - 14);
   doc.text(`Exported on ${date}`, margin, pageHeight - 10);
   
   doc.save("legal-advice.pdf");
+}
+
+function generateHTMLPDF(text) {
+  const date = new Date().toLocaleDateString('en-IN');
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Legal Advice</title>
+      <style>
+        @media print {
+          body { margin: 0; padding: 0; }
+          .print-break { page-break-inside: avoid; }
+        }
+        body {
+          font-family: "Segoe UI", Arial, sans-serif;
+          margin: 20px;
+          line-height: 1.6;
+          color: #1e293b;
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 20px;
+          border-bottom: 2px solid #ccc;
+          padding-bottom: 15px;
+        }
+        .header h1 {
+          font-size: 24px;
+          color: #1a56db;
+          margin: 0;
+        }
+        .header p {
+          font-size: 14px;
+          color: #64748b;
+          margin: 5px 0 0 0;
+        }
+        .content {
+          font-size: 14px;
+          line-height: 1.8;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+        }
+        .footer {
+          margin-top: 30px;
+          padding-top: 15px;
+          border-top: 1px solid #ccc;
+          font-size: 11px;
+          color: #64748b;
+          text-align: center;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>Advocare</h1>
+        <p>AI Legal Assistant for Indian Citizens</p>
+      </div>
+      <div class="content">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+      <div class="footer">
+        <p>Disclaimer: This is AI-generated information and NOT legal advice.</p>
+        <p>Exported on ${date}</p>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+  
+  iframe.onload = () => {
+    iframe.contentDocument.write(htmlContent);
+    iframe.contentDocument.close();
+    setTimeout(() => {
+      iframe.contentWindow.print();
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 100);
+    }, 500);
+  };
+  
+  iframe.src = 'about:blank';
 }
 
 // ─── Language & UI Controls ─────────────────────────────────
