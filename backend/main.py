@@ -163,6 +163,18 @@ async def login_user(payload: AuthRequest, db: Session = Depends(get_db)):
     return TokenResponse(access_token=token)
 
 
+@app.get("/me")
+async def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "age": current_user.age,
+        "user_type": current_user.user_type,
+        "created_at": current_user.created_at
+    }
+
+
 @app.get("/me", response_model=UserProfileResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
     return UserProfileResponse(

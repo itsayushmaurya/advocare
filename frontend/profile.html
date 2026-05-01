@@ -16,6 +16,28 @@
         padding: 48px 24px;
       }
 
+      .back-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--elevated);
+        border: 1px solid var(--border);
+        color: var(--text);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.2s ease;
+        position: relative;
+      }
+
+      .back-btn:hover {
+        background: var(--surface);
+        border-color: #4f6ef7;
+        box-shadow: 0 0 15px rgba(79, 110, 247, 0.2);
+      }
+
       .profile-panel {
         width: min(760px, 100%);
         margin: 0 auto;
@@ -161,51 +183,173 @@
             <p>Free AI Legal Guidance for Every Indian</p>
           </div>
         </div>
+        <button class="back-btn" onclick="window.history.back();" title="Go back">←</button>
       </div>
     </header>
 
     <main class="profile-page">
       <section class="profile-panel">
         <div class="profile-hero">
-          <div class="profile-avatar-large">AM</div>
+          <div class="profile-avatar-large" id="profileAvatar">AM</div>
           <div class="profile-title">
-            <h2>Ayush Maurya</h2>
-            <p>@ayushmaurya</p>
+            <h2 id="profileUserName">Loading...</h2>
+            <p id="profileUserEmail">@user</p>
           </div>
         </div>
 
         <form class="profile-form">
           <div class="profile-field">
-            <label for="displayName">Display Name</label>
-            <input id="displayName" type="text" value="Ayush Maurya" />
+            <label for="profileFirstName">First Name</label>
+            <input id="profileFirstName" type="text" placeholder="First Name" />
           </div>
 
           <div class="profile-field">
-            <label for="username">Username</label>
-            <input id="username" type="text" value="ayushmaurya" />
+            <label for="profileLastName">Last Name</label>
+            <input id="profileLastName" type="text" placeholder="Last Name" />
           </div>
 
           <div class="profile-field">
-            <label for="email">Email</label>
-            <input id="email" type="email" value="ayush.maurya@example.com" />
+            <label for="profileUsername">Username</label>
+            <input id="profileUsername" type="text" placeholder="Username" disabled />
           </div>
 
           <div class="profile-field">
-            <label for="phone">Phone</label>
-            <input id="phone" type="tel" value="+91 98765 43210" />
+            <label for="profileUserType">User Type</label>
+            <input id="profileUserType" type="text" placeholder="User Type" disabled />
+          </div>
+
+          <div class="profile-field">
+            <label for="profileAge">Age</label>
+            <input id="profileAge" type="number" placeholder="Age" />
           </div>
 
           <div class="profile-field full-width">
-            <label for="bio">Bio</label>
-            <textarea id="bio">Legal guidance user on Advocare.</textarea>
+            <label for="profileEmail">Email</label>
+            <input id="profileEmail" type="email" placeholder="Email" disabled />
           </div>
 
           <div class="profile-actions">
-            <button class="profile-btn cancel" type="button">Cancel</button>
-            <button class="profile-btn save" type="button">Save</button>
+            <button class="profile-btn cancel" type="button" onclick="cancelChanges()">Cancel</button>
+            <button class="profile-btn save" type="button" onclick="saveProfile()">Save</button>
           </div>
         </form>
       </section>
     </main>
+
+    <script>
+      const API_BASE = "http://localhost:8000";
+      const TOKEN_KEY = "advocare_token";
+
+      window.addEventListener("load", async () => {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) {
+          window.location.href = "auth.html";
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+
+          if (!res.ok) {
+            if (res.status === 401) {
+              window.location.href = "auth.html";
+              return;
+            }
+            throw new Error("Failed to load profile");
+          }
+
+          const user = await res.json();
+
+          // Parse name into first/last
+          const nameParts = (user.name || "").split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+
+          // Generate username from email
+          const username = user.email.split("@")[0];
+
+          // Update avatar with initials
+          const initials = (user.name || "U")
+            .split(" ")
+            .map(part => part[0])
+            .join("")
+            .toUpperCase();
+          document.getElementById("profileAvatar").textContent = initials;
+
+          // Update header
+          document.getElementById("profileUserName").textContent = user.name;
+          document.getElementById("profileUserEmail").textContent = user.email;
+
+          // Update form fields
+          document.getElementById("profileFirstName").value = firstName;
+          document.getElementById("profileLastName").value = lastName;
+          document.getElementById("profileUsername").value = username;
+          document.getElementById("profileUserType").value = user.user_type || "citizen";
+          document.getElementById("profileEmail").value = user.email || "";
+          document.getElementById("profileAge").value = user.age || "";
+        } catch (error) {
+          alert("Error loading profile: " + error.message);
+          window.location.href = "index.html";
+        }
+      });
+
+      function saveProfile() {
+        alert("Profile update feature coming soon");
+      }
+
+      function cancelChanges() {
+        // Reset all form fields to their original loaded values
+        window.addEventListener("load", reloadProfile);
+        reloadProfile();
+      }
+
+      async function reloadProfile() {
+        const token = localStorage.getItem("advocare_token");
+        if (!token) {
+          window.location.href = "auth.html";
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+
+          if (!res.ok) {
+            if (res.status === 401) {
+              window.location.href = "auth.html";
+              return;
+            }
+            throw new Error("Failed to load profile");
+          }
+
+          const user = await res.json();
+
+          // Parse name into first/last
+          const nameParts = (user.name || "").split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+
+          // Generate username from email
+          const username = user.email.split("@")[0];
+
+          // Update form fields
+          document.getElementById("profileFirstName").value = firstName;
+          document.getElementById("profileLastName").value = lastName;
+          document.getElementById("profileUsername").value = username;
+          document.getElementById("profileUserType").value = user.user_type || "citizen";
+          document.getElementById("profileEmail").value = user.email || "";
+          document.getElementById("profileAge").value = user.age || "";
+        } catch (error) {
+          alert("Error resetting profile: " + error.message);
+        }
+      }
+    </script>
   </body>
 </html>
