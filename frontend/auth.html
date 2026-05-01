@@ -460,7 +460,7 @@
               class="auth-input password-input"
               type="password"
               placeholder="Enter your password"
-              oninput="validatePassword(); checkFormValidity()"
+              oninput="validatePassword(); validateConfirmPassword(); checkFormValidity()"
             />
             <button type="button" class="password-toggle" onclick="togglePasswordVisibility('passwordInput', this)">👁️</button>
           </div>
@@ -594,7 +594,7 @@
           return false;
         }
 
-        if (password === confirmPassword) {
+        if (password === confirmPassword && password !== "") {
           feedback.textContent = "Passwords match ✓";
           feedback.className = "confirm-password-feedback match";
           input.classList.remove("match-error");
