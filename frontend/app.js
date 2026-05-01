@@ -869,9 +869,17 @@ function toggleSidebar() {
 
 function toggleProfileMenu(event) {
   event.stopPropagation();
-  if (event.target.closest(".profile-menu-item")?.textContent.trim() === "Privacy Policy") {
-    window.location.href = "privacy.html";
-    return;
+  const item = event.target.closest(".profile-menu-item");
+  if (item) {
+    const text = item.textContent.trim();
+    if (text === "Privacy Policy") {
+      window.location.href = "privacy.html";
+      return;
+    }
+    if (text === "Contact Us") {
+      window.location.href = "contact.html";
+      return;
+    }
   }
   const dropdown = document.getElementById("profileDropdown");
   dropdown?.classList.toggle("hidden");
@@ -892,9 +900,17 @@ document.addEventListener("click", function (event) {
   const profileContainer = document.getElementById("profileContainer");
   const dropdown = document.getElementById("profileDropdown");
   if (!profileContainer || !dropdown) return;
-  if (event.target.closest(".profile-menu-item")?.textContent.trim() === "Privacy Policy") {
-    window.location.href = "privacy.html";
-    return;
+  const item = event.target.closest(".profile-menu-item");
+  if (item) {
+    const text = item.textContent.trim();
+    if (text === "Privacy Policy") {
+      window.location.href = "privacy.html";
+      return;
+    }
+    if (text === "Contact Us") {
+      window.location.href = "contact.html";
+      return;
+    }
   }
   if (!profileContainer.contains(event.target)) {
     dropdown.classList.add("hidden");
