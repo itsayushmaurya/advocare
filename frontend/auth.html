@@ -485,17 +485,19 @@
           </div>
           <div class="confirm-password-feedback" id="confirmPasswordFeedback"></div>
 
-          <div style="display: flex; align-items: center; gap: 8px; margin-top: 16px; display: none;" id="privacyContainer">
+          <div style="display: flex; align-items: flex-start; gap: 8px; margin-top: 16px; display: none;" id="privacyContainer">
             <input
               id="privacyCheckbox"
               type="checkbox"
-              style="width: 16px; height: 16px; cursor: pointer; accent-color: #4f6ef7;"
+              style="width: 16px; height: 16px; cursor: pointer; accent-color: #4f6ef7; margin-top: 2px; flex-shrink: 0;"
               oninput="checkFormValidity()"
             />
-            <label for="privacyCheckbox" style="font-size: 12px; color: #8888aa; cursor: pointer;">
-              I agree to the privacy policy and terms of service
+            <label for="privacyCheckbox" style="font-size: 12px; color: #8888aa; cursor: pointer; line-height: 1.4;">
+              I have read and agree to the <a href="privacy.html" target="_blank" style="color: #4f6ef7; text-decoration: none; transition: color 0.2s ease;" onmouseover="this.style.color='#6b84ff'" onmouseout="this.style.color='#4f6ef7'">Privacy Policy and Terms of Use</a>
             </label>
           </div>
+          
+          <p class="auth-error" id="privacyError" style="margin-top: 8px;"></p>
 
           <button id="submitBtn" type="submit">Login</button>
         </form>
@@ -741,7 +743,14 @@
             if (!password) {
               throw new Error("Password is required.");
             }
-            
+            const privacyCheckbox = document.getElementById("privacyCheckbox");
+            const privacyError = document.getElementById("privacyError");
+            if (!privacyCheckbox.checked) {
+              privacyError.textContent = "You must agree to continue";
+              submitBtn.disabled = false;
+              return;
+            }
+
             body = { name, email, age, user_type: userType, password };
           }
 

@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy & Terms of Use – Advocare</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        background: #0a0a0f;
+        color: #f0f0ff;
+        font-family: "Inter", sans-serif;
+        line-height: 1.6;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Navbar ── */
+      .navbar {
+        background: rgba(17, 17, 24, 0.8);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #2a2a3a;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .navbar-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .navbar-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity 0.2s ease;
+      }
+
+      .navbar-logo:hover {
+        opacity: 0.8;
+      }
+
+      .navbar-logo-icon {
+        font-size: 28px;
+      }
+
+      .navbar-logo-text h1 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .navbar-logo-text p {
+        font-size: 12px;
+        color: #8888aa;
+      }
+
+      .back-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #1a1a24;
+        border: 1px solid #2a2a3a;
+        color: #f0f0ff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.2s ease;
+        position: relative;
+      }
+
+      .back-btn:hover {
+        background: #222229;
+        border-color: #4f6ef7;
+        box-shadow: 0 0 15px rgba(79, 110, 247, 0.2);
+      }
+
+      .back-btn-tooltip {
+        position: absolute;
+        bottom: -32px;
+        right: 0;
+        background: #1a1a24;
+        border: 1px solid #2a2a3a;
+        color: #8888aa;
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 10;
+      }
+
+      .back-btn:hover .back-btn-tooltip {
+        opacity: 1;
+      }
+
+      /* ── Content ── */
+      .content {
+        flex: 1;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 60px 24px;
+        width: 100%;
+      }
+
+      .content h1 {
+        font-size: 36px;
+        font-weight: 700;
+        color: #f0f0ff;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        color: #8888aa;
+        margin-bottom: 24px;
+      }
+
+      .intro {
+        font-size: 14px;
+        color: #8888aa;
+        margin-bottom: 40px;
+        line-height: 1.8;
+      }
+
+      .section {
+        margin-bottom: 40px;
+      }
+
+      .section h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #4f6ef7;
+        margin-bottom: 12px;
+        border-left: 4px solid #4f6ef7;
+        padding-left: 12px;
+      }
+
+      .section p {
+        font-size: 14px;
+        color: #8888aa;
+        line-height: 1.8;
+        margin-bottom: 12px;
+      }
+
+      .warning-box {
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-left: 4px solid #ef4444;
+        padding: 16px;
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+
+      .warning-box p {
+        color: #ff9999;
+        font-weight: 600;
+      }
+
+      .contact-section {
+        background: rgba(17, 17, 24, 0.5);
+        border: 1px solid #2a2a3a;
+        border-radius: 12px;
+        padding: 24px;
+        margin: 40px 0;
+      }
+
+      /* ── Footer Buttons ── */
+      .footer-buttons {
+        margin-top: 60px;
+        padding-top: 24px;
+        border-top: 1px solid #2a2a3a;
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+      }
+
+      .back-to-auth-btn {
+        background: linear-gradient(135deg, #4f6ef7, #6b84ff);
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 32px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .back-to-auth-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(79, 110, 247, 0.4);
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 768px) {
+        .content {
+          padding: 40px 20px;
+        }
+
+        .content h1 {
+          font-size: 28px;
+        }
+
+        .section h2 {
+          font-size: 18px;
+        }
+
+        .navbar-inner {
+          padding: 12px 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-inner">
+        <div class="navbar-logo" onclick="window.location.href = 'home.html';">
+          <span class="navbar-logo-icon">⚖️</span>
+          <div class="navbar-logo-text">
+            <h1>Advocare</h1>
+            <p>Free AI Legal Guidance</p>
+          </div>
+        </div>
+        <button class="back-btn" onclick="window.location.href = 'auth.html?tab=register';">
+          ←
+          <span class="back-btn-tooltip">Back to Register</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="content">
+      <h1>Privacy Policy & Terms of Use</h1>
+      <p class="subtitle">Last updated: January 2025</p>
+      <p class="intro">Please read these terms carefully before using Advocare.</p>
+
+      <!-- Section 1 -->
+      <section class="section">
+        <h2>1. What Advocare Is</h2>
+        <p>Advocare is a free AI-powered legal information platform designed to help Indian citizens understand their legal rights and options. Advocare is NOT a law firm. We are NOT lawyers. Nothing on this platform constitutes legal advice.</p>
+      </section>
+
+      <!-- Section 2 -->
+      <section class="section">
+        <h2>2. No Legal Advice Disclaimer</h2>
+        <p>The information provided by Advocare is for general informational and educational purposes only. It should not be treated as legal advice and cannot substitute consultation with a qualified legal professional. Advocare makes no guarantees about the accuracy, completeness, or applicability of any information to your specific situation. For serious legal matters, always consult a licensed advocate or approach your nearest legal aid center.</p>
+        <div class="warning-box">
+          <p>⚠️ Important: Always verify important information through official government sources or a qualified lawyer before taking any action.</p>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section class="section">
+        <h2>3. AI Generated Content</h2>
+        <p>Responses on Advocare are generated by artificial intelligence. AI can make mistakes. The information provided may not reflect the most recent changes in law or may not apply correctly to your specific circumstances. Always verify important information through official government sources or a qualified lawyer.</p>
+      </section>
+
+      <!-- Section 4 -->
+      <section class="section">
+        <h2>4. Free Legal Aid</h2>
+        <p>If you cannot afford a lawyer, you are entitled to free legal aid under Article 39A of the Indian Constitution. Contact NALSA at <strong>nalsa.gov.in</strong> or call <strong>15100</strong> for free legal assistance.</p>
+      </section>
+
+      <!-- Section 5 -->
+      <section class="section">
+        <h2>5. Data and Privacy</h2>
+        <p>We collect your name, email address, age, and user type at registration. Your chat conversations are stored securely to provide session history. We do not sell your data to any third party. We do not share your information with advertisers. Your conversations are private and accessible only to you.</p>
+      </section>
+
+      <!-- Section 6 -->
+      <section class="section">
+        <h2>6. User Responsibilities</h2>
+        <p>You agree to use Advocare only for lawful purposes. You agree not to misuse the platform to generate false legal claims. You agree that the information provided is for guidance only and you take full responsibility for any actions you take based on this information.</p>
+      </section>
+
+      <!-- Section 7 -->
+      <section class="section">
+        <h2>7. Emergency Situations</h2>
+        <p>Advocare is not an emergency service. If you are in immediate danger, call <strong>112</strong> (National Emergency), <strong>100</strong> (Police), or <strong>181</strong> (Women Helpline) immediately. Do not rely on Advocare for emergency situations.</p>
+        <div class="warning-box">
+          <p>🚨 In case of emergency, always call the appropriate emergency number immediately. Do not wait for AI responses.</p>
+        </div>
+      </section>
+
+      <!-- Section 8 -->
+      <section class="section">
+        <h2>8. Changes to Terms</h2>
+        <p>We reserve the right to update these terms at any time. Continued use of the platform after changes means you accept the updated terms.</p>
+      </section>
+
+      <!-- Section 9 -->
+      <section class="section">
+        <h2>9. Contact</h2>
+        <div class="contact-section">
+          <p>For any questions or concerns about these terms, you can reach us through the platform.</p>
+        </div>
+      </section>
+
+      <!-- Footer Buttons -->
+      <div class="footer-buttons">
+        <a href="auth.html?tab=register" class="back-to-auth-btn">Back to Register</a>
+      </div>
+    </main>
+
+    <script>
+      // Check if user is logged in and redirect
+      window.addEventListener("load", () => {
+        const token = localStorage.getItem("advocare_token");
+        if (token) {
+          try {
+            const payloadPart = token.split(".")[1];
+            if (payloadPart) {
+              const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+              const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+              const payload = JSON.parse(atob(padded));
+              if (payload.exp && payload.exp > Math.floor(Date.now() / 1000)) {
+                // User is logged in, allow to stay on privacy page
+              }
+            }
+          } catch {
+            // Token invalid, stay on privacy page
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
