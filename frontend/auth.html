@@ -777,7 +777,14 @@
           }
 
           localStorage.setItem(TOKEN_KEY, data.access_token);
-          window.location.href = "index.html";
+          
+          // Verify token was saved before redirecting
+          const savedToken = localStorage.getItem(TOKEN_KEY);
+          if (savedToken) {
+            window.location.href = "index.html";
+          } else {
+            throw new Error("Failed to save authentication token.");
+          }
         } catch (error) {
           errorEl.textContent =
             error.message || "Could not authenticate. Please try again.";
