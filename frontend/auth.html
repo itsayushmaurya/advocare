@@ -10,6 +10,45 @@
       rel="stylesheet"
     />
     <style>
+      html, body {
+        background: #0a0a0f;
+        color: #f0f0ff;
+        height: 100%;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+      }
+
+      .header {
+        background: rgba(17, 17, 24, 0.8);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #2a2a3a;
+      }
+
+      .header-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .logo h1 {
+        color: #ffffff;
+      }
+
+      .logo p {
+        color: #8888aa;
+      }
+
+      .badge {
+        background: rgba(79, 110, 247, 0.1);
+        border: 1px solid rgba(79, 110, 247, 0.3);
+        color: #4f6ef7;
+      }
+
       .auth-shell {
         flex: 1;
         display: flex;
@@ -21,81 +60,150 @@
       .auth-card {
         width: 100%;
         max-width: 420px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        padding: 24px;
+        background: #111118;
+        border: 1px solid #2a2a3a;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        padding: 32px;
       }
 
       .auth-title {
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 700;
-        color: var(--text);
+        color: #f0f0ff;
       }
 
       .auth-subtitle {
-        margin-top: 6px;
-        color: var(--muted);
+        margin-top: 8px;
+        color: #8888aa;
         font-size: 14px;
       }
 
       .auth-toggle {
-        margin-top: 18px;
+        margin-top: 24px;
         display: flex;
         gap: 8px;
       }
 
       .auth-toggle button {
         flex: 1;
+        background: #1a1a24;
+        border: 1px solid #2a2a3a;
+        color: #8888aa;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .auth-toggle button:hover {
+        border-color: #4f6ef7;
+        color: #4f6ef7;
+      }
+
+      .auth-toggle button.active {
+        background: #4f6ef7;
+        color: #ffffff;
+        border-color: #4f6ef7;
+        box-shadow: 0 0 20px rgba(79, 110, 247, 0.3);
       }
 
       .auth-form {
-        margin-top: 18px;
+        margin-top: 24px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
       }
 
       .auth-label {
         font-size: 13px;
         font-weight: 600;
-        color: var(--text);
+        color: #f0f0ff;
       }
 
       .auth-input {
         width: 100%;
-        border: 1px solid var(--border);
+        background: #1a1a24;
+        border: 1px solid #2a2a3a;
         border-radius: 8px;
-        padding: 10px 12px;
+        padding: 12px 14px;
         font-family: "Inter", sans-serif;
         font-size: 14px;
+        color: #f0f0ff;
         outline: none;
+        transition: all 0.2s ease;
+      }
+
+      .auth-input::placeholder {
+        color: #8888aa;
       }
 
       .auth-input:focus {
-        border-color: var(--primary);
+        border-color: #4f6ef7;
+        box-shadow: 0 0 12px rgba(79, 110, 247, 0.2);
+        background: #1a1a24;
+      }
+
+      #submitBtn {
+        background: linear-gradient(135deg, #4f6ef7, #6b84ff);
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 4px;
+      }
+
+      #submitBtn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(79, 110, 247, 0.4);
+      }
+
+      #submitBtn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
       }
 
       .auth-error {
-        margin-top: 8px;
+        margin-top: 12px;
         color: #ef4444;
         font-size: 13px;
         min-height: 18px;
+      }
+
+      .auth-footer {
+        margin-top: 20px;
+        text-align: center;
+        color: #8888aa;
+        font-size: 13px;
+      }
+
+      .auth-footer a {
+        color: #4f6ef7;
+        text-decoration: none;
+        transition: color 0.2s ease;
+      }
+
+      .auth-footer a:hover {
+        color: #6b84ff;
       }
     </style>
   </head>
   <body>
     <header class="header">
       <div class="header-inner">
-        <div class="logo">
+        <div class="logo" style="padding: 14px 24px;">
           <span class="logo-icon">⚖️</span>
           <div>
-            <h1>Advocare</h1>
-            <p>Free AI Legal Guidance for Every Indian</p>
+            <h1 style="margin: 0; font-size: 20px;">Advocare</h1>
+            <p style="margin: 4px 0 0 0; font-size: 13px;">Free AI Legal Guidance</p>
           </div>
         </div>
-        <div class="badge">🇮🇳 India Specific</div>
       </div>
     </header>
 
@@ -109,12 +217,12 @@
         <div class="auth-toggle">
           <button
             id="loginToggle"
-            class="toggle-btn active"
+            class="active"
             onclick="setMode('login')"
           >
             Login
           </button>
-          <button id="registerToggle" class="toggle-btn" onclick="setMode('register')">
+          <button id="registerToggle" onclick="setMode('register')">
             Register
           </button>
         </div>
@@ -139,10 +247,14 @@
             required
           />
 
-          <button id="submitBtn" class="send-btn" type="submit">Login</button>
+          <button id="submitBtn" type="submit">Login</button>
         </form>
 
         <p class="auth-error" id="authError"></p>
+
+        <p class="auth-footer" id="authFooter">
+          Don't have an account? <a href="#" onclick="setMode('register'); return false;">Sign up</a>
+        </p>
       </section>
     </main>
 
