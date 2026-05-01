@@ -118,17 +118,17 @@
               
               <div class="settings-option">
                 <label class="settings-label">Output Type</label>
-                <div class="settings-toggle-group">
-                  <button class="settings-toggle" id="quickToggle" onclick="setReplyMode('quick')">Quick</button>
-                  <button class="settings-toggle active" id="detailToggle" onclick="setReplyMode('detail')">Detailed</button>
+                <div class="settings-toggle-group" role="group" aria-label="Output type">
+                  <button type="button" class="settings-toggle" id="quickToggle" aria-pressed="false" onclick="setReplyMode('quick')">Quick</button>
+                  <button type="button" class="settings-toggle active" id="detailToggle" aria-pressed="true" onclick="setReplyMode('detail')">Detailed</button>
                 </div>
               </div>
               
               <div class="settings-option">
                 <label class="settings-label">Language</label>
-                <div class="settings-toggle-group">
-                  <button class="settings-toggle active" id="langEnToggle" onclick="setLanguage('en')">English</button>
-                  <button class="settings-toggle" id="langHiToggle" onclick="setLanguage('hi')">हिंदी</button>
+                <div class="settings-toggle-group" role="group" aria-label="Language">
+                  <button type="button" class="settings-toggle active" id="langEnToggle" aria-pressed="true" onclick="setLanguage('en')">English</button>
+                  <button type="button" class="settings-toggle" id="langHiToggle" aria-pressed="false" onclick="setLanguage('hi')">हिंदी</button>
                 </div>
               </div>
             </div>
@@ -237,6 +237,8 @@
           detailToggle?.classList.add('active');
           quickToggle?.classList.remove('active');
         }
+        quickToggle?.setAttribute('aria-pressed', mode === 'quick');
+        detailToggle?.setAttribute('aria-pressed', mode !== 'quick');
         
         // Update language buttons
         const langEnToggle = document.getElementById('langEnToggle');
@@ -248,6 +250,8 @@
           langEnToggle?.classList.add('active');
           langHiToggle?.classList.remove('active');
         }
+        langEnToggle?.setAttribute('aria-pressed', language !== 'hi');
+        langHiToggle?.setAttribute('aria-pressed', language === 'hi');
       }
 
       // Restore sidebar collapsed state on page load

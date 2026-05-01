@@ -3,8 +3,16 @@ const TOKEN_KEY = "advocare_token";
 let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
-let replyMode = "detail"; // 'quick' or 'detail'
-let language = "en"; // 'en' or 'hi'
+let replyMode = normalizeReplyMode(localStorage.getItem("replyMode")); // 'quick' or 'detail'
+let language = normalizeLanguage(localStorage.getItem("language")); // 'en' or 'hi'
+
+function normalizeReplyMode(mode) {
+  return mode === "quick" ? "quick" : "detail";
+}
+
+function normalizeLanguage(lang) {
+  return lang === "hi" ? "hi" : "en";
+}
 
 function getStoredToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -53,39 +61,35 @@ window.addEventListener("load", async () => {
 });
 
 function setReplyMode(mode) {
-  replyMode = mode;
+  replyMode = normalizeReplyMode(mode);
+  localStorage.setItem("replyMode", replyMode);
   updateReplyToggle();
 }
 
 function setLanguage(lang) {
-  language = lang;
+  language = normalizeLanguage(lang);
+  localStorage.setItem("language", language);
   updateLanguageToggle();
 }
 
 function updateLanguageToggle() {
-  const enBtn = document.getElementById("langEnBtn");
-  const hiBtn = document.getElementById("langHiBtn");
+  const enBtn = document.getElementById("langEnToggle");
+  const hiBtn = document.getElementById("langHiToggle");
   if (!enBtn || !hiBtn) return;
-  if (language === "en") {
-    enBtn.classList.add("active");
-    hiBtn.classList.remove("active");
-  } else {
-    enBtn.classList.remove("active");
-    hiBtn.classList.add("active");
-  }
+  enBtn.classList.toggle("active", language === "en");
+  hiBtn.classList.toggle("active", language === "hi");
+  enBtn.setAttribute("aria-pressed", language === "en");
+  hiBtn.setAttribute("aria-pressed", language === "hi");
 }
 
 function updateReplyToggle() {
-  const quickBtn = document.getElementById("quickBtn");
-  const detailBtn = document.getElementById("detailBtn");
+  const quickBtn = document.getElementById("quickToggle");
+  const detailBtn = document.getElementById("detailToggle");
   if (!quickBtn || !detailBtn) return;
-  if (replyMode === "quick") {
-    quickBtn.classList.add("active");
-    detailBtn.classList.remove("active");
-  } else {
-    quickBtn.classList.remove("active");
-    detailBtn.classList.add("active");
-  }
+  quickBtn.classList.toggle("active", replyMode === "quick");
+  detailBtn.classList.toggle("active", replyMode === "detail");
+  quickBtn.setAttribute("aria-pressed", replyMode === "quick");
+  detailBtn.setAttribute("aria-pressed", replyMode === "detail");
 }
 
 async function apiFetch(path, options = {}) {
@@ -770,24 +774,6 @@ function generateHTMLPDF(text) {
   };
   
   iframe.src = 'about:blank';
-}
-
-// ─── Language & UI Controls ─────────────────────────────────
-function setLanguage(lang) {
-  language = lang;
-  updateLanguageToggle();
-}
-
-function updateLanguageToggle() {
-  const enBtn = document.getElementById("langEn");
-  const hiBtn = document.getElementById("langHi");
-  if (language === "en") {
-    enBtn?.classList.add("active");
-    hiBtn?.classList.remove("active");
-  } else {
-    hiBtn?.classList.add("active");
-    enBtn?.classList.remove("active");
-  }
 }
 
 function toggleSidebar() {
