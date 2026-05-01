@@ -306,7 +306,7 @@ async function submitQuery() {
       // NO category field here — Groq rejects unknown fields
     });
 
-    appendBotMessage(cleanText, data.detected_category);
+    appendBotMessage(cleanText, data.detected_category, data.urgency);
 
     // Update strength panel
     if (score !== null) {
@@ -338,7 +338,7 @@ function appendUserMessage(text, save = true) {
   scrollToBottom();
 }
 
-function appendBotMessage(text, category = "", save = true) {
+function appendBotMessage(text, category = "", urgency = "normal", save = true) {
   const chatWindow = document.getElementById("chatWindow");
   const shouldAutoScroll = isNearBottom(chatWindow);
   const div = document.createElement("div");
@@ -349,9 +349,17 @@ function appendBotMessage(text, category = "", save = true) {
       ? `<div class="category-badge">📂 ${formatCategory(category)}</div>`
       : "";
 
+  const urgencyBanner = urgency === "high"
+    ? `<div class="urgency-banner">
+        🚨 EMERGENCY - CALL IMMEDIATELY<br>
+        Police: <strong>100</strong> | Women's Helpline: <strong>181</strong> | General Emergency: <strong>112</strong>
+      </div>`
+    : "";
+
   div.innerHTML = `
     <div class="bot-avatar">⚖️</div>
     <div class="message-content">
+      ${urgencyBanner}
       ${categoryLabel}
       <div class="response-block">${formatResponse(text)}</div>
     </div>

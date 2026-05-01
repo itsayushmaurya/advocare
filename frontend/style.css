@@ -348,6 +348,18 @@ body {
   margin-bottom: 10px;
 }
 
+.urgency-banner {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
 /* ── Typing ── */
 .typing {
   display: flex;

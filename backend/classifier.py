@@ -36,3 +36,18 @@ def classify_issue(user_input: str) -> str:
     
     best = max(scores, key=scores.get)
     return best if scores[best] > 0 else "general"
+
+
+def detect_urgency(user_input: str) -> str:
+    """Detect if the legal issue requires immediate emergency response."""
+    HIGH_URGENCY_KEYWORDS = [
+        "beaten", "threatened", "arrested", "kidnapped", "bleeding",
+        "unconscious", "suicide", "dying", "attack", "rape",
+        "fire", "accident", "emergency", "help", "danger", "injured"
+    ]
+    
+    text = user_input.lower()
+    for keyword in HIGH_URGENCY_KEYWORDS:
+        if keyword in text:
+            return "high"
+    return "normal"

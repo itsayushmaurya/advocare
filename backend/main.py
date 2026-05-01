@@ -10,7 +10,7 @@ from auth import create_access_token, get_current_user, hash_password, verify_pa
 from db import get_db
 from llm_service import call_llm
 from prompt_engine import build_prompt, build_followup_prompt
-from classifier import classify_issue
+from classifier import classify_issue, detect_urgency
 from models import Message, Session as ChatSession, User
 
 app = FastAPI(
@@ -38,6 +38,7 @@ class LegalQuery(BaseModel):
 class LegalResponse(BaseModel):
     response: str
     detected_category: str
+    urgency: str
     session_id: Optional[int] = None
 
 
@@ -147,6 +148,7 @@ async def analyze_legal_problem(
 
     # Step 1: Rule-based classification
     category = classify_issue(user_problem)
+    urgency = detect_urgency(user_problem)
 
     if query.session_id is not None:
         active_session = (
@@ -203,6 +205,7 @@ async def analyze_legal_problem(
     return LegalResponse(
         response=llm_response,
         detected_category=category,
+        urgency=urgency,
         session_id=active_session.id,
     )
 
