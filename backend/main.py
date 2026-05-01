@@ -111,10 +111,10 @@ async def register_user(payload: RegisterRequest, db: Session = Depends(get_db))
         raise HTTPException(status_code=400, detail="Name is required.")
     if not email:
         raise HTTPException(status_code=400, detail="Email is required.")
-    if len(password) < 6:
+    if len(password) < 7:
         raise HTTPException(
             status_code=400,
-            detail="Password must be at least 6 characters long.",
+            detail="Password must be at least 7 characters long.",
         )
     
     if user_type not in {"citizen", "lawyer"}:
