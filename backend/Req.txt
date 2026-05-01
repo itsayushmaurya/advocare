@@ -6,7 +6,7 @@ pydantic
 sqlalchemy
 alembic
 supabase
-passlib[bcrypt]
+passlib
 python-jose[cryptography]
 slowapi
 python-multipart

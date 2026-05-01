@@ -43,10 +43,10 @@ function ensureAuthenticated() {
 }
 
 // ─── On Page Load ───────────────────────────────────────────
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
   if (!ensureAuthenticated()) return;
-  renderSidebar();
-  loadLastSession();
+  await renderSidebar();
+  await loadLastSession();
   updateReplyToggle();
 });
 
@@ -68,132 +68,123 @@ function updateReplyToggle() {
   }
 }
 
+async function apiFetch(path, options = {}) {
+  const token = getStoredToken();
+  if (!isTokenValid(token)) {
+    redirectToAuth();
+    throw new Error("Unauthorized");
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (response.status === 401) {
+    redirectToAuth();
+    throw new Error("Unauthorized");
+  }
+
+  return response;
+}
+
 // ─── Session Helpers ────────────────────────────────────────
-function generateId() {
-  return "session_" + Date.now();
-}
-
-function getAllSessions() {
-  const raw = localStorage.getItem("byol_sessions");
-  return raw ? JSON.parse(raw) : {};
-}
-
-async function saveSession(sessionId, messages, strengthData = null) {
-  const sessions = getAllSessions();
-
-  // Keep existing strength if no new one passed
-  const existing = sessions[sessionId];
-  const strength =
-    strengthData !== null ? strengthData : existing ? existing.strength : null;
-
-  sessions[sessionId] = {
-    id: sessionId,
-    title: getSessionTitle(messages),
-    messages: messages,
-    strength: strength,
-    updatedAt: Date.now(),
-  };
-
-  localStorage.setItem("byol_sessions", JSON.stringify(sessions));
-  renderSidebar();
-}
-
-function getSessionTitle(messages) {
-  // Use first user message as title
-  const first = messages.find((m) => m.role === "user");
-  if (!first) return "New Chat";
-  return first.content.length > 45
-    ? first.content.substring(0, 45) + "..."
-    : first.content;
+async function getAllSessions() {
+  const response = await apiFetch("/sessions");
+  if (!response.ok) {
+    throw new Error("Could not load sessions.");
+  }
+  return response.json();
 }
 
 function startNewSession() {
-  currentSessionId = generateId();
+  currentSessionId = null;
   conversationHistory = [];
   clearChatWindow();
   showWelcomeMessage();
-  renderSidebar();
 }
 
-function loadSession(sessionId) {
-  const sessions = getAllSessions();
-  const session = sessions[sessionId];
-  if (!session) return;
+async function loadSession(sessionId) {
+  const response = await apiFetch(`/sessions/${sessionId}/messages`);
+  if (!response.ok) {
+    throw new Error("Could not load session messages.");
+  }
+  const messages = await response.json();
 
   currentSessionId = sessionId;
-  conversationHistory = session.messages;
+  conversationHistory = [];
   clearChatWindow();
   showWelcomeMessage();
 
-  session.messages.forEach((msg) => {
-    if (msg.role === "user") appendUserMessage(msg.content, false);
-    else if (msg.role === "assistant")
-      appendBotMessage(msg.content, msg.category || "", false);
+  let hasStrength = false;
+  messages.forEach((msg) => {
+    if (msg.role === "user") {
+      appendUserMessage(msg.content, false);
+      conversationHistory.push({ role: "user", content: msg.content });
+      return;
+    }
+
+    if (msg.role === "assistant") {
+      const { cleanText, score, positives, negatives } = parseResponse(msg.content);
+      appendBotMessage(cleanText, msg.category || "", false);
+      conversationHistory.push({ role: "assistant", content: cleanText });
+      if (score !== null) {
+        updateStrengthPanel(score, positives, negatives);
+        hasStrength = true;
+      }
+    }
   });
 
-  // ← Restore strength panel
-  if (session.strength) {
-    updateStrengthPanel(
-      session.strength.score,
-      session.strength.positives,
-      session.strength.negatives,
-    );
-  } else {
-    // Reset panel to empty state
+  if (!hasStrength) {
     document.getElementById("strengthEmpty").classList.remove("hidden");
     document.getElementById("strengthResults").classList.add("hidden");
   }
 
-  renderSidebar();
+  await renderSidebar();
 }
 
-function loadLastSession() {
-  const sessions = getAllSessions();
-  const sorted = Object.values(sessions).sort(
-    (a, b) => b.updatedAt - a.updatedAt,
-  );
-  if (sorted.length > 0) {
-    loadSession(sorted[0].id);
-  } else {
-    startNewSession();
+async function loadLastSession() {
+  try {
+    const sessions = await getAllSessions();
+    if (sessions.length > 0) {
+      await loadSession(sessions[0].id);
+      return;
+    }
+  } catch {
+    // keep default empty state on error
   }
-}
-
-function deleteSession(sessionId, e) {
-  e.stopPropagation(); // prevent triggering loadSession
-  const sessions = getAllSessions();
-  delete sessions[sessionId];
-  localStorage.setItem("byol_sessions", JSON.stringify(sessions));
-
-  if (currentSessionId === sessionId) {
-    startNewSession();
-  }
-  renderSidebar();
+  startNewSession();
 }
 
 // ─── Sidebar Rendering ──────────────────────────────────────
-function renderSidebar() {
-  const sessions = getAllSessions();
-  const sorted = Object.values(sessions).sort(
-    (a, b) => b.updatedAt - a.updatedAt,
-  );
+async function renderSidebar() {
   const list = document.getElementById("sessionList");
+  let sessions = [];
 
-  if (sorted.length === 0) {
+  try {
+    sessions = await getAllSessions();
+  } catch {
+    list.innerHTML = `<p class="no-sessions">Could not load sessions.</p>`;
+    return;
+  }
+
+  if (sessions.length === 0) {
     list.innerHTML = `<p class="no-sessions">No previous chats yet.</p>`;
     return;
   }
 
-  list.innerHTML = sorted
+  list.innerHTML = sessions
     .map(
       (session) => `
     <div class="session-item ${session.id === currentSessionId ? "active" : ""}"
-         onclick="loadSession('${session.id}')">
+         onclick="loadSession(${session.id})">
       <div class="session-info">
         <span class="session-title">${escapeHtml(session.title)}</span>
-        <span class="session-date">${formatDate(session.updatedAt)}</span>
+        <span class="session-date">${formatDate(session.created_at)}</span>
       </div>
-      <button class="delete-btn" onclick="deleteSession('${session.id}', event)" title="Delete">✕</button>
     </div>
   `,
     )
@@ -251,8 +242,7 @@ function handleKey(e) {
 
 async function submitQuery() {
   if (isLoading) return;
-  const token = getStoredToken();
-  if (!isTokenValid(token)) {
+  if (!ensureAuthenticated()) {
     redirectToAuth();
     return;
   }
@@ -263,8 +253,6 @@ async function submitQuery() {
     return;
   }
 
-  if (!currentSessionId) startNewSession();
-
   setLoading(true);
   appendUserMessage(input);
   document.getElementById("userInput").value = "";
@@ -273,25 +261,20 @@ async function submitQuery() {
   const typingId = showTyping();
 
   try {
-    const response = await fetch(`${API_BASE}/analyze`, {
+    const response = await apiFetch("/analyze", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         problem: input,
         conversation_history: conversationHistory,
         reply_mode: replyMode,
+        session_id: currentSessionId,
       }),
     });
 
     removeTyping(typingId);
-
-    if (response.status === 401) {
-      redirectToAuth();
-      return;
-    }
 
     if (!response.ok) {
       const err = await response.json();
@@ -302,6 +285,7 @@ async function submitQuery() {
     const { cleanText, score, positives, negatives } = parseResponse(
       data.response,
     );
+    if (data.session_id) currentSessionId = data.session_id;
 
     console.log("PARSED:", score, positives, negatives);
 
@@ -324,17 +308,11 @@ async function submitQuery() {
 
     appendBotMessage(cleanText, data.detected_category);
 
-    // Update strength panel + save strength with session
+    // Update strength panel
     if (score !== null) {
       updateStrengthPanel(score, positives, negatives);
-      await saveSession(currentSessionId, conversationHistory, {
-        score,
-        positives,
-        negatives,
-      });
-    } else {
-      await saveSession(currentSessionId, conversationHistory, null);
     }
+    await renderSidebar();
   } catch (err) {
     removeTyping(typingId);
     appendBotMessage(
