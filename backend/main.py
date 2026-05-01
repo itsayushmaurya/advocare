@@ -10,7 +10,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from auth import create_access_token, get_current_user, hash_password, verify_password
-from db import get_db
+from db import get_db, engine, Base
 from llm_service import call_llm
 from prompt_engine import build_prompt, build_followup_prompt
 from classifier import classify_issue, detect_urgency
@@ -37,6 +37,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup():
+    Base.metadata.create_all(bind=engine)
+
 # --- Models ---
 class LegalQuery(BaseModel):
     problem: str
@@ -54,6 +58,14 @@ class LegalResponse(BaseModel):
 
 class AuthRequest(BaseModel):
     email: str
+    password: str
+
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    age: Optional[int] = None
+    user_type: str = "citizen"
     password: str
 
 
@@ -88,10 +100,15 @@ def health():
 
 
 @app.post("/register", response_model=TokenResponse)
-async def register_user(payload: AuthRequest, db: Session = Depends(get_db)):
+async def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
+    name = payload.name.strip()
     email = payload.email.strip().lower()
     password = payload.password.strip()
+    age = payload.age
+    user_type = payload.user_type.strip().lower()
 
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is required.")
     if not email:
         raise HTTPException(status_code=400, detail="Email is required.")
     if len(password) < 6:
@@ -99,12 +116,21 @@ async def register_user(payload: AuthRequest, db: Session = Depends(get_db)):
             status_code=400,
             detail="Password must be at least 6 characters long.",
         )
+    
+    if user_type not in {"citizen", "lawyer"}:
+        user_type = "citizen"
 
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email is already registered.")
 
-    user = User(email=email, password_hash=hash_password(password))
+    user = User(
+        name=name,
+        email=email,
+        age=age,
+        user_type=user_type,
+        password_hash=hash_password(password)
+    )
     db.add(user)
     db.commit()
     db.refresh(user)

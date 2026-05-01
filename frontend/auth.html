@@ -192,6 +192,31 @@
       .auth-footer a:hover {
         color: #6b84ff;
       }
+
+      .auth-toggle-btn {
+        flex: 1;
+        background: #1a1a24;
+        border: 1px solid #2a2a3a;
+        color: #8888aa;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .auth-toggle-btn:hover {
+        border-color: #4f6ef7;
+        color: #4f6ef7;
+      }
+
+      .auth-toggle-btn.active {
+        background: #4f6ef7;
+        color: #ffffff;
+        border-color: #4f6ef7;
+        box-shadow: 0 0 20px rgba(79, 110, 247, 0.3);
+      }
     </style>
   </head>
   <body>
@@ -228,6 +253,36 @@
         </div>
 
         <form class="auth-form" onsubmit="handleAuth(event)">
+          <div id="nameFieldContainer" style="display: none;">
+            <label class="auth-label" for="nameInput">Full Name</label>
+            <input
+              id="nameInput"
+              class="auth-input"
+              type="text"
+              placeholder="Your full name"
+            />
+          </div>
+
+          <div id="ageFieldContainer" style="display: none;">
+            <label class="auth-label" for="ageInput">Age (Optional)</label>
+            <input
+              id="ageInput"
+              class="auth-input"
+              type="number"
+              min="18"
+              max="120"
+              placeholder="Your age"
+            />
+          </div>
+
+          <div id="userTypeFieldContainer" style="display: none;">
+            <label class="auth-label">I am a:</label>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="auth-toggle-btn active" onclick="setUserType('citizen')">Citizen</button>
+              <button type="button" class="auth-toggle-btn" onclick="setUserType('lawyer')">Lawyer</button>
+            </div>
+          </div>
+
           <label class="auth-label" for="emailInput">Email</label>
           <input
             id="emailInput"
@@ -262,6 +317,7 @@
       const API_BASE = "http://localhost:8000";
       const TOKEN_KEY = "advocare_token";
       let mode = "login";
+      let userType = "citizen";
 
       function parseJwtPayload(token) {
         try {
@@ -282,6 +338,17 @@
         return payload.exp > Math.floor(Date.now() / 1000);
       }
 
+      function setUserType(type) {
+        userType = type;
+        document.querySelectorAll('.auth-toggle-btn').forEach(btn => {
+          if (btn.textContent.toLowerCase().includes(type)) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+
       function setMode(nextMode) {
         mode = nextMode;
         const isLogin = mode === "login";
@@ -295,6 +362,18 @@
           ? "Login to continue your legal assistance."
           : "Register to start using Advocare.";
         document.getElementById("authError").textContent = "";
+        
+        // Show/hide register fields
+        document.getElementById("nameFieldContainer").style.display = isLogin ? "none" : "block";
+        document.getElementById("ageFieldContainer").style.display = isLogin ? "none" : "block";
+        document.getElementById("userTypeFieldContainer").style.display = isLogin ? "none" : "block";
+        
+        // Clear fields when switching modes
+        if (isLogin) {
+          document.getElementById("nameInput").value = "";
+          document.getElementById("ageInput").value = "";
+          userType = "citizen";
+        }
       }
 
       async function handleAuth(event) {
@@ -308,10 +387,30 @@
         submitBtn.disabled = true;
 
         try {
+          let body;
+          if (mode === "login") {
+            body = { email, password };
+          } else {
+            const name = document.getElementById("nameInput").value.trim();
+            const age = document.getElementById("ageInput").value ? parseInt(document.getElementById("ageInput").value) : null;
+            
+            if (!name) {
+              throw new Error("Full name is required.");
+            }
+            if (!email) {
+              throw new Error("Email is required.");
+            }
+            if (!password) {
+              throw new Error("Password is required.");
+            }
+            
+            body = { name, email, age, user_type: userType, password };
+          }
+
           const response = await fetch(`${API_BASE}/${mode}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify(body),
           });
 
           const data = await response.json();
