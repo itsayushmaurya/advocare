@@ -409,10 +409,24 @@ body {
   transition: all 0.2s ease;
 }
 
-.whatsapp-share:hover {
-  border-color: #25d366;
-  color: #25d366;
-  background: #f0fdf4;
+.pdf-export {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.pdf-export:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: #fef2f2;
 }
 
 /* ── Typing ── */

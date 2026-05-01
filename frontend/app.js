@@ -383,11 +383,21 @@ function appendBotMessage(text, category = "", urgency = "normal", save = true) 
     .trim();
   
   const shareLink = `https://wa.me/?text=${encodeURIComponent(cleanText)}`;
+  const msgId = `msg-${Date.now()}`;
+  
   const shareButton = `<button class="whatsapp-share" onclick="window.open('${shareLink}', '_blank')" title="Share on WhatsApp">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-5.031 1.378c-1.557.927-2.751 2.236-3.584 3.787-1.269 2.369-.666 5.048.193 6.978 1.305 2.937 4.165 5.031 7.437 5.031 1.686 0 3.248-.374 4.681-1.076l.335-.16 3.332.869-.902-3.319.19-.303a9.325 9.325 0 001.428-4.19c.105-1.12.032-2.297-.288-3.415-.547-1.607-1.557-3.083-2.982-4.209C15.258 2.39 12.274 1.979 11.051 1.979z"/>
     </svg>
     Share
+  </button>`;
+
+  const pdfButton = `<button class="pdf-export" onclick="exportToPDF('${msgId}', '${encodeURIComponent(cleanText)}')" title="Export as PDF">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+    </svg>
+    PDF
   </button>`;
 
   div.innerHTML = `
@@ -396,7 +406,7 @@ function appendBotMessage(text, category = "", urgency = "normal", save = true) 
       ${urgencyBanner}
       ${categoryLabel}
       <div class="response-block">${formatResponse(text)}</div>
-      <div class="message-actions">${shareButton}</div>
+      <div class="message-actions">${shareButton}${pdfButton}</div>
     </div>
   `;
   chatWindow.appendChild(div);
@@ -597,4 +607,71 @@ function togglePoints(type) {
   } else {
     negBox.classList.toggle("hidden");
   }
+}
+
+async function exportToPDF(msgId, encodedText) {
+  try {
+    const text = decodeURIComponent(encodedText);
+    
+    if (typeof window.jsPDF === "undefined") {
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      script.onload = () => generatePDF(text);
+      script.onerror = () => alert("Failed to load PDF library");
+      document.head.appendChild(script);
+    } else {
+      generatePDF(text);
+    }
+  } catch (err) {
+    alert("Error exporting PDF");
+    console.error(err);
+  }
+}
+
+function generatePDF(text) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  const textWidth = pageWidth - 2 * margin;
+  
+  const date = new Date().toLocaleDateString('en-IN');
+  
+  doc.setFontSize(20);
+  doc.setTextColor(26, 86, 219);
+  doc.text("⚖️ Advocare", margin, margin + 5);
+  
+  doc.setFontSize(10);
+  doc.setTextColor(100, 116, 139);
+  doc.text("AI Legal Assistant for Indian Citizens", margin, margin + 12);
+  
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, margin + 15, pageWidth - margin, margin + 15);
+  
+  doc.setFontSize(11);
+  doc.setTextColor(30, 41, 59);
+  
+  const splitText = doc.splitTextToSize(text, textWidth);
+  let yPosition = margin + 25;
+  
+  splitText.forEach((line) => {
+    if (yPosition > pageHeight - 30) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    doc.text(line, margin, yPosition);
+    yPosition += 6;
+  });
+  
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
+  
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text("⚠️ Disclaimer: This is AI-generated information and NOT legal advice.", margin, pageHeight - 14);
+  doc.text(`Exported on ${date}`, margin, pageHeight - 10);
+  
+  doc.save("legal-advice.pdf");
 }
