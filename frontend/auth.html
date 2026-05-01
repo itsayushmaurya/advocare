@@ -518,6 +518,7 @@
       const TOKEN_KEY = "advocare_token";
       let mode = "login";
       let userType = "citizen";
+      let previousUserType = "citizen";
 
       function parseJwtPayload(token) {
         try {
@@ -538,16 +539,45 @@
         return payload.exp > Math.floor(Date.now() / 1000);
       }
 
-      function setUserType(type) {
-        userType = type;
-        document.querySelectorAll('.auth-toggle-btn').forEach(btn => {
-          if (btn.textContent.toLowerCase().includes(type)) {
-            btn.classList.add('active');
-          } else {
-            btn.classList.remove('active');
-          }
+      function getUserTypeButton(type) {
+        return Array.from(document.querySelectorAll(".auth-toggle-btn")).find((btn) =>
+          btn.textContent.trim().toLowerCase() === type
+        );
+      }
+
+      function syncUserTypeButtons() {
+        document.querySelectorAll(".auth-toggle-btn").forEach((btn) => {
+          const type = btn.textContent.trim().toLowerCase();
+          btn.classList.toggle("active", type === userType);
         });
-        validateAge();
+      }
+
+      function setUserType(type) {
+        const ageValue = document.getElementById("ageInput").value;
+        const age = ageValue ? parseInt(ageValue) : null;
+        const ageError = document.getElementById("ageError");
+
+        ageError.textContent = "";
+
+        if (type === "minor" && age !== null && age >= 18) {
+          ageError.textContent = "Select age below 18";
+          userType = previousUserType === "minor" ? "" : previousUserType;
+          syncUserTypeButtons();
+          checkFormValidity();
+          return;
+        }
+
+        if ((type === "citizen" || type === "lawyer") && age !== null && age < 18) {
+          previousUserType = userType;
+          userType = "minor";
+          syncUserTypeButtons();
+          checkFormValidity();
+          return;
+        }
+
+        previousUserType = userType;
+        userType = type;
+        syncUserTypeButtons();
         checkFormValidity();
       }
 
@@ -614,29 +644,29 @@
         const ageInput = document.getElementById("ageInput");
         const ageError = document.getElementById("ageError");
         const age = ageInput.value ? parseInt(ageInput.value) : null;
+        const minorButton = getUserTypeButton("minor");
 
         ageError.textContent = "";
+        if (minorButton) minorButton.disabled = false;
 
         if (age === null) {
+          syncUserTypeButtons();
+          checkFormValidity();
           return true;
         }
 
-        if (userType === "minor") {
-          if (age >= 18) {
-            ageError.textContent = "Minors must be under 18 years old";
-            ageInput.value = "";
-            checkFormValidity();
-            return false;
-          }
-        } else if (userType === "citizen" || userType === "lawyer") {
-          if (age < 18) {
-            ageError.textContent = "Please select Minor for users under 18";
-            ageInput.value = "";
-            checkFormValidity();
-            return false;
+        if (age < 18) {
+          previousUserType = userType;
+          userType = "minor";
+        } else {
+          if (minorButton) minorButton.disabled = true;
+          if (userType === "minor") {
+            userType = "";
           }
         }
 
+        syncUserTypeButtons();
+        checkFormValidity();
         return true;
       }
 
@@ -657,11 +687,10 @@
         const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         const userTypeValid = userType && userType !== "";
         
-        let ageValid = true;
-        if (age !== null) {
-          if (userType === "minor" && age >= 18) ageValid = false;
-          if ((userType === "citizen" || userType === "lawyer") && age < 18) ageValid = false;
-        }
+        const ageValid =
+          age === null ||
+          (userType === "minor" && age < 18) ||
+          ((userType === "citizen" || userType === "lawyer") && age >= 18);
 
         const allValid = nameValid && emailValid && passwordValid && confirmValid && userTypeValid && ageValid && privacyCheckbox.checked;
         document.getElementById("submitBtn").disabled = !allValid;
