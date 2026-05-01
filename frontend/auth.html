@@ -202,6 +202,104 @@
         background: #1a1a24;
       }
 
+      .password-wrapper {
+        position: relative;
+      }
+
+      .password-toggle {
+        position: absolute;
+        right: 14px;
+        top: 12px;
+        background: none;
+        border: none;
+        color: #8888aa;
+        cursor: pointer;
+        font-size: 18px;
+        transition: color 0.2s ease;
+        padding: 0;
+      }
+
+      .password-toggle:hover {
+        color: #4f6ef7;
+      }
+
+      .auth-input.password-input {
+        padding-right: 40px;
+      }
+
+      .password-requirements {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 12px;
+      }
+
+      .req-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #8888aa;
+      }
+
+      .req-icon {
+        width: 16px;
+        display: flex;
+        justify-content: center;
+        font-weight: 700;
+      }
+
+      .req-item.met {
+        color: #22c55e;
+      }
+
+      .req-item.met .req-icon {
+        color: #22c55e;
+      }
+
+      .req-item:not(.met) .req-icon {
+        color: #ef4444;
+      }
+
+      .confirm-password-feedback {
+        margin-top: 6px;
+        font-size: 12px;
+        min-height: 16px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .confirm-password-feedback.match {
+        color: #22c55e;
+      }
+
+      .confirm-password-feedback.mismatch {
+        color: #ef4444;
+      }
+
+      .auth-input.match-success {
+        border-color: #22c55e;
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+      }
+
+      .auth-input.match-error {
+        border-color: #ef4444;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+      }
+
+      .auth-input.password-valid {
+        border-color: #22c55e;
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+      }
+
+      .age-error {
+        margin-top: 6px;
+        color: #ef4444;
+        font-size: 12px;
+        min-height: 16px;
+      }
+
       #submitBtn {
         background: linear-gradient(135deg, #4f6ef7, #6b84ff);
         color: #ffffff;
@@ -329,10 +427,12 @@
               id="ageInput"
               class="auth-input"
               type="number"
-              min="18"
+              min="1"
               max="120"
               placeholder="Your age"
+              oninput="validateAge()"
             />
+            <div class="age-error" id="ageError"></div>
           </div>
 
           <div id="userTypeFieldContainer" style="display: none;">
@@ -340,6 +440,7 @@
             <div style="display: flex; gap: 8px;">
               <button type="button" class="auth-toggle-btn active" onclick="setUserType('citizen')">Citizen</button>
               <button type="button" class="auth-toggle-btn" onclick="setUserType('lawyer')">Lawyer</button>
+              <button type="button" class="auth-toggle-btn" onclick="setUserType('minor')">Minor</button>
             </div>
           </div>
 
@@ -353,14 +454,48 @@
           />
 
           <label class="auth-label" for="passwordInput">Password</label>
-          <input
-            id="passwordInput"
-            class="auth-input"
-            type="password"
-            placeholder="Enter your password"
-            minlength="6"
-            required
-          />
+          <div class="password-wrapper">
+            <input
+              id="passwordInput"
+              class="auth-input password-input"
+              type="password"
+              placeholder="Enter your password"
+              oninput="validatePassword(); checkFormValidity()"
+            />
+            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('passwordInput', this)">👁️</button>
+          </div>
+          <div class="password-requirements">
+            <div class="req-item" id="req-length"><span class="req-icon">✗</span> At least 7 characters</div>
+            <div class="req-item" id="req-upper"><span class="req-icon">✗</span> At least one uppercase letter</div>
+            <div class="req-item" id="req-lower"><span class="req-icon">✗</span> At least one lowercase letter</div>
+            <div class="req-item" id="req-number"><span class="req-icon">✗</span> At least one number</div>
+            <div class="req-item" id="req-special"><span class="req-icon">✗</span> At least one special character (!@#$%^&*)</div>
+          </div>
+
+          <label class="auth-label" for="confirmPasswordInput">Re-enter Password</label>
+          <div class="password-wrapper">
+            <input
+              id="confirmPasswordInput"
+              class="auth-input password-input"
+              type="password"
+              placeholder="Re-enter your password"
+              oninput="validateConfirmPassword(); checkFormValidity()"
+            />
+            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPasswordInput', this)">👁️</button>
+          </div>
+          <div class="confirm-password-feedback" id="confirmPasswordFeedback"></div>
+
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 16px; display: none;" id="privacyContainer">
+            <input
+              id="privacyCheckbox"
+              type="checkbox"
+              style="width: 16px; height: 16px; cursor: pointer; accent-color: #4f6ef7;"
+              oninput="checkFormValidity()"
+            />
+            <label for="privacyCheckbox" style="font-size: 12px; color: #8888aa; cursor: pointer;">
+              I agree to the privacy policy and terms of service
+            </label>
+          </div>
 
           <button id="submitBtn" type="submit">Login</button>
         </form>
@@ -407,6 +542,124 @@
             btn.classList.remove('active');
           }
         });
+        validateAge();
+        checkFormValidity();
+      }
+
+      function togglePasswordVisibility(inputId, button) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+          input.type = "text";
+          button.textContent = "🙈";
+        } else {
+          input.type = "password";
+          button.textContent = "👁️";
+        }
+      }
+
+      function validatePassword() {
+        const password = document.getElementById("passwordInput").value;
+        const req = {
+          length: password.length >= 7,
+          upper: /[A-Z]/.test(password),
+          lower: /[a-z]/.test(password),
+          number: /[0-9]/.test(password),
+          special: /[!@#$%^&*]/.test(password)
+        };
+
+        document.getElementById("req-length").classList.toggle("met", req.length);
+        document.getElementById("req-upper").classList.toggle("met", req.upper);
+        document.getElementById("req-lower").classList.toggle("met", req.lower);
+        document.getElementById("req-number").classList.toggle("met", req.number);
+        document.getElementById("req-special").classList.toggle("met", req.special);
+
+        const allMet = Object.values(req).every(v => v);
+        document.getElementById("passwordInput").classList.toggle("password-valid", allMet);
+        return allMet;
+      }
+
+      function validateConfirmPassword() {
+        const password = document.getElementById("passwordInput").value;
+        const confirmPassword = document.getElementById("confirmPasswordInput").value;
+        const feedback = document.getElementById("confirmPasswordFeedback");
+        const input = document.getElementById("confirmPasswordInput");
+
+        if (confirmPassword === "") {
+          feedback.textContent = "";
+          input.classList.remove("match-success", "match-error");
+          return false;
+        }
+
+        if (password === confirmPassword) {
+          feedback.textContent = "Passwords match ✓";
+          feedback.className = "confirm-password-feedback match";
+          input.classList.remove("match-error");
+          input.classList.add("match-success");
+          return true;
+        } else {
+          feedback.textContent = "Passwords do not match ✗";
+          feedback.className = "confirm-password-feedback mismatch";
+          input.classList.remove("match-success");
+          input.classList.add("match-error");
+          return false;
+        }
+      }
+
+      function validateAge() {
+        const ageInput = document.getElementById("ageInput");
+        const ageError = document.getElementById("ageError");
+        const age = ageInput.value ? parseInt(ageInput.value) : null;
+
+        ageError.textContent = "";
+
+        if (age === null) {
+          return true;
+        }
+
+        if (userType === "minor") {
+          if (age >= 18) {
+            ageError.textContent = "Minors must be under 18 years old";
+            ageInput.value = "";
+            checkFormValidity();
+            return false;
+          }
+        } else if (userType === "citizen" || userType === "lawyer") {
+          if (age < 18) {
+            ageError.textContent = "Please select Minor for users under 18";
+            ageInput.value = "";
+            checkFormValidity();
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      function checkFormValidity() {
+        if (mode !== "register") return;
+
+        const name = document.getElementById("nameInput").value.trim();
+        const email = document.getElementById("emailInput").value.trim();
+        const password = document.getElementById("passwordInput").value;
+        const confirmPassword = document.getElementById("confirmPasswordInput").value;
+        const age = document.getElementById("ageInput").value ? parseInt(document.getElementById("ageInput").value) : null;
+        const privacyCheckbox = document.getElementById("privacyCheckbox");
+
+        const passwordValid = validatePassword();
+        const confirmValid = password === confirmPassword && confirmPassword !== "";
+        
+        const nameValid = name.length > 0;
+        const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const userTypeValid = userType && userType !== "";
+        
+        let ageValid = true;
+        if (age !== null) {
+          if (userType === "minor" && age >= 18) ageValid = false;
+          if ((userType === "citizen" || userType === "lawyer") && age < 18) ageValid = false;
+        }
+
+        const allValid = nameValid && emailValid && passwordValid && confirmValid && userTypeValid && ageValid && privacyCheckbox.checked;
+        document.getElementById("submitBtn").disabled = !allValid;
       }
 
        function setMode(nextMode) {
@@ -427,6 +680,7 @@
          document.getElementById("nameFieldContainer").style.display = isLogin ? "none" : "block";
          document.getElementById("ageFieldContainer").style.display = isLogin ? "none" : "block";
          document.getElementById("userTypeFieldContainer").style.display = isLogin ? "none" : "block";
+         document.getElementById("privacyContainer").style.display = isLogin ? "none" : "flex";
          
          // Update footer text and link
          const footerText = document.getElementById("authFooterText");
@@ -445,8 +699,19 @@
          if (isLogin) {
            document.getElementById("nameInput").value = "";
            document.getElementById("ageInput").value = "";
+           document.getElementById("passwordInput").value = "";
+           document.getElementById("confirmPasswordInput").value = "";
+           document.getElementById("ageError").textContent = "";
+           document.getElementById("confirmPasswordFeedback").textContent = "";
+           document.getElementById("passwordInput").classList.remove("password-valid");
+           document.getElementById("confirmPasswordInput").classList.remove("match-success", "match-error");
            userType = "citizen";
+         } else {
+           document.getElementById("emailInput").value = "";
+           document.getElementById("passwordInput").value = "";
          }
+         
+         checkFormValidity();
        }
 
       async function handleAuth(event) {
