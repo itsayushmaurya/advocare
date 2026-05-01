@@ -880,6 +880,10 @@ function toggleProfileMenu(event) {
       window.location.href = "contact.html";
       return;
     }
+    if (text === "Logout") {
+      logout();
+      return;
+    }
   }
   const dropdown = document.getElementById("profileDropdown");
   dropdown?.classList.toggle("hidden");
@@ -911,8 +915,20 @@ document.addEventListener("click", function (event) {
       window.location.href = "contact.html";
       return;
     }
+    if (text === "Logout") {
+      logout();
+      return;
+    }
   }
   if (!profileContainer.contains(event.target)) {
     dropdown.classList.add("hidden");
   }
 });
+
+function logout() {
+  localStorage.removeItem(TOKEN_KEY);
+  conversationHistory = [];
+  currentSessionId = null;
+  isLoading = false;
+  window.location.href = "auth.html";
+}
