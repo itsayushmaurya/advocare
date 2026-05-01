@@ -21,9 +21,24 @@
             <p>Free AI Legal Guidance for Every Indian</p>
           </div>
         </div>
-        <div class="profile-container">
+        <div class="profile-container" id="profileContainer" onclick="toggleProfileMenu(event)">
           <div class="avatar">AM</div>
           <span class="username">Ayush Maurya</span>
+          <div class="profile-dropdown hidden" id="profileDropdown">
+            <div class="profile-email">ayush.maurya@example.com</div>
+            <button class="profile-menu-item" type="button">Profile</button>
+            <div class="profile-menu-item profile-menu-submenu">
+              <span>Language</span>
+              <span class="submenu-arrow">›</span>
+              <div class="language-submenu">
+                <button type="button">English</button>
+                <button type="button">हिंदी</button>
+              </div>
+            </div>
+            <button class="profile-menu-item" type="button">Privacy Policy</button>
+            <button class="profile-menu-item" type="button">Contact Us</button>
+            <button class="profile-menu-item logout-item" type="button">Logout</button>
+          </div>
         </div>
       </div>
     </header>

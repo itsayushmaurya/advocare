@@ -798,3 +798,18 @@ function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
   sidebar?.classList.toggle("active");
 }
+
+function toggleProfileMenu(event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById("profileDropdown");
+  dropdown?.classList.toggle("hidden");
+}
+
+document.addEventListener("click", function (event) {
+  const profileContainer = document.getElementById("profileContainer");
+  const dropdown = document.getElementById("profileDropdown");
+  if (!profileContainer || !dropdown) return;
+  if (!profileContainer.contains(event.target)) {
+    dropdown.classList.add("hidden");
+  }
+});
