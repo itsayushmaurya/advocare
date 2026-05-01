@@ -13,14 +13,15 @@
       html, body {
         background: #0a0a0f;
         color: #f0f0ff;
-        height: 100%;
+        margin: 0;
+        padding: 0;
       }
 
       body {
         display: flex;
         flex-direction: column;
-        margin: 0;
-        padding: 0;
+        min-height: 100vh;
+        overflow-y: auto;
       }
 
       .header {
@@ -33,6 +34,61 @@
         max-width: 1200px;
         margin: 0 auto;
         width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+      }
+
+      .logo:hover {
+        opacity: 0.8;
+      }
+
+      .back-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #1a1a24;
+        border: 1px solid #2a2a3a;
+        color: #f0f0ff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.2s ease;
+        position: relative;
+      }
+
+      .back-btn:hover {
+        background: #222229;
+        border-color: #4f6ef7;
+        box-shadow: 0 0 15px rgba(79, 110, 247, 0.2);
+      }
+
+      .back-btn-tooltip {
+        position: absolute;
+        bottom: -32px;
+        right: 0;
+        background: #1a1a24;
+        border: 1px solid #2a2a3a;
+        color: #8888aa;
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 10;
+      }
+
+      .back-btn:hover .back-btn-tooltip {
+        opacity: 1;
       }
 
       .logo h1 {
@@ -222,13 +278,17 @@
   <body>
     <header class="header">
       <div class="header-inner">
-        <div class="logo" style="padding: 14px 24px;">
+        <div class="logo" style="padding: 14px 24px; cursor: pointer;" onclick="window.location.href = 'home.html';">
           <span class="logo-icon">⚖️</span>
           <div>
             <h1 style="margin: 0; font-size: 20px;">Advocare</h1>
             <p style="margin: 4px 0 0 0; font-size: 13px;">Free AI Legal Guidance</p>
           </div>
         </div>
+        <button class="back-btn" onclick="window.location.href = 'home.html';" style="margin-right: 24px;">
+          ←
+          <span class="back-btn-tooltip">Go back to Home</span>
+        </button>
       </div>
     </header>
 
@@ -308,7 +368,7 @@
         <p class="auth-error" id="authError"></p>
 
         <p class="auth-footer" id="authFooter">
-          Don't have an account? <a href="#" onclick="setMode('register'); return false;">Sign up</a>
+          <span id="authFooterText">Don't have an account? </span><a href="#" id="authFooterLink" onclick="return false;"></a>
         </p>
       </section>
     </main>
@@ -349,32 +409,45 @@
         });
       }
 
-      function setMode(nextMode) {
-        mode = nextMode;
-        const isLogin = mode === "login";
-        document.getElementById("loginToggle").classList.toggle("active", isLogin);
-        document.getElementById("registerToggle").classList.toggle("active", !isLogin);
-        document.getElementById("submitBtn").textContent = isLogin ? "Login" : "Create Account";
-        document.getElementById("authTitle").textContent = isLogin
-          ? "Welcome back"
-          : "Create your account";
-        document.getElementById("authSubtitle").textContent = isLogin
-          ? "Login to continue your legal assistance."
-          : "Register to start using Advocare.";
-        document.getElementById("authError").textContent = "";
-        
-        // Show/hide register fields
-        document.getElementById("nameFieldContainer").style.display = isLogin ? "none" : "block";
-        document.getElementById("ageFieldContainer").style.display = isLogin ? "none" : "block";
-        document.getElementById("userTypeFieldContainer").style.display = isLogin ? "none" : "block";
-        
-        // Clear fields when switching modes
-        if (isLogin) {
-          document.getElementById("nameInput").value = "";
-          document.getElementById("ageInput").value = "";
-          userType = "citizen";
-        }
-      }
+       function setMode(nextMode) {
+         mode = nextMode;
+         const isLogin = mode === "login";
+         document.getElementById("loginToggle").classList.toggle("active", isLogin);
+         document.getElementById("registerToggle").classList.toggle("active", !isLogin);
+         document.getElementById("submitBtn").textContent = isLogin ? "Login" : "Create Account";
+         document.getElementById("authTitle").textContent = isLogin
+           ? "Welcome back"
+           : "Create your account";
+         document.getElementById("authSubtitle").textContent = isLogin
+           ? "Login to continue your legal assistance."
+           : "Register to start using Advocare.";
+         document.getElementById("authError").textContent = "";
+         
+         // Show/hide register fields
+         document.getElementById("nameFieldContainer").style.display = isLogin ? "none" : "block";
+         document.getElementById("ageFieldContainer").style.display = isLogin ? "none" : "block";
+         document.getElementById("userTypeFieldContainer").style.display = isLogin ? "none" : "block";
+         
+         // Update footer text and link
+         const footerText = document.getElementById("authFooterText");
+         const footerLink = document.getElementById("authFooterLink");
+         if (isLogin) {
+           footerText.textContent = "Don't have an account? ";
+           footerLink.textContent = "Register";
+           footerLink.onclick = () => { setMode("register"); return false; };
+         } else {
+           footerText.textContent = "Already have an account? ";
+           footerLink.textContent = "Login";
+           footerLink.onclick = () => { setMode("login"); return false; };
+         }
+         
+         // Clear fields when switching modes
+         if (isLogin) {
+           document.getElementById("nameInput").value = "";
+           document.getElementById("ageInput").value = "";
+           userType = "citizen";
+         }
+       }
 
       async function handleAuth(event) {
         event.preventDefault();
@@ -438,7 +511,17 @@
           window.location.href = "index.html";
           return;
         }
-        setMode("login");
+        
+        // Read URL query parameter "tab"
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get("tab");
+        
+        // Set initial mode: if tab is "login" or "register", use that; otherwise default to "register"
+        if (tab === "login") {
+          setMode("login");
+        } else {
+          setMode("register");
+        }
       });
     </script>
   </body>
