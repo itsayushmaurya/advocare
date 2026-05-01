@@ -97,14 +97,30 @@ body {
   color: var(--text-secondary);
 }
 
-.badge {
-  background: rgba(79, 110, 247, 0.1);
+.profile-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--elevated);
   border: 1px solid var(--border);
-  padding: 6px 14px;
-  border-radius: 20px;
+  color: var(--text);
   font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.username {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .language-toggle {
@@ -873,7 +889,7 @@ textarea::placeholder {
     padding: 12px;
   }
 
-  .badge {
+  .username {
     display: none;
   }
 
