@@ -6,6 +6,42 @@ let currentSessionId = null;
 let isSidebarCollapsed = false;
 let replyMode = normalizeReplyMode(localStorage.getItem("replyMode")); // 'quick' or 'detail'
 let language = normalizeLanguage(localStorage.getItem("language")); // 'en' or 'hi'
+const UI_TEXT = {
+  en: {
+    inputPlaceholder:
+      "Describe your legal problem here... (e.g. 'My boss fired me without notice')",
+    sendButton: "Get Legal Help →",
+    loadingButton: "Analyzing...",
+    newChat: "+ New Chat",
+    settings: "Settings",
+    outputType: "Output Type",
+    quick: "Quick",
+    detailed: "Detailed",
+    language: "Language",
+    welcomeTitle: "Hello! I'm your AI Legal Assistant.",
+    welcomeBody:
+      "Describe your legal problem in simple language and I'll guide you step-by-step on what to do, where to complain, and what your rights are.",
+    welcomeDisclaimer:
+      "⚠️ This is for informational purposes only and does not constitute legal advice.",
+  },
+  hi: {
+    inputPlaceholder:
+      "अपनी कानूनी समस्या यहां लिखें... (जैसे 'मेरे बॉस ने मुझे बिना नोटिस के नौकरी से निकाल दिया')",
+    sendButton: "कानूनी मदद पाएं →",
+    loadingButton: "विश्लेषण हो रहा है...",
+    newChat: "+ नई चैट",
+    settings: "सेटिंग्स",
+    outputType: "उत्तर का प्रकार",
+    quick: "संक्षिप्त",
+    detailed: "विस्तृत",
+    language: "भाषा",
+    welcomeTitle: "नमस्ते! मैं आपका AI कानूनी सहायक हूं।",
+    welcomeBody:
+      "अपनी कानूनी समस्या सरल भाषा में बताएं और मैं आपको चरण-दर-चरण बताऊंगा कि क्या करना है, कहां शिकायत करनी है और आपके अधिकार क्या हैं।",
+    welcomeDisclaimer:
+      "⚠️ यह केवल जानकारी के लिए है और कानूनी सलाह नहीं है।",
+  },
+};
 
 function normalizeReplyMode(mode) {
   return mode === "quick" ? "quick" : "detail";
@@ -60,6 +96,7 @@ window.addEventListener("load", async () => {
   await loadLastSession();
   updateReplyToggle();
   updateLanguageToggle();
+  applyLanguageText();
 });
 
 function applySidebarState() {
@@ -88,6 +125,7 @@ function setLanguage(lang) {
   language = normalizeLanguage(lang);
   localStorage.setItem("language", language);
   updateLanguageToggle();
+  applyLanguageText();
 }
 
 function updateLanguageToggle() {
@@ -108,6 +146,35 @@ function updateReplyToggle() {
   detailBtn.classList.toggle("active", replyMode === "detail");
   quickBtn.setAttribute("aria-pressed", replyMode === "quick");
   detailBtn.setAttribute("aria-pressed", replyMode === "detail");
+}
+
+function applyLanguageText() {
+  const text = UI_TEXT[language] || UI_TEXT.en;
+  const userInput = document.getElementById("userInput");
+  const btnText = document.getElementById("btnText");
+  const btnLoader = document.getElementById("btnLoader");
+  const newChatBtn = document.querySelector(".new-chat-btn");
+  const settingsHeader = document.querySelector(".settings-menu-header");
+  const settingsLabels = document.querySelectorAll(".settings-label");
+  const quickToggle = document.getElementById("quickToggle");
+  const detailToggle = document.getElementById("detailToggle");
+  const welcome = document.querySelector(".bot-message.welcome");
+
+  if (userInput) userInput.placeholder = text.inputPlaceholder;
+  if (btnText) btnText.textContent = text.sendButton;
+  if (btnLoader) btnLoader.textContent = text.loadingButton;
+  if (newChatBtn) newChatBtn.textContent = text.newChat;
+  if (settingsHeader) settingsHeader.textContent = text.settings;
+  if (settingsLabels[0]) settingsLabels[0].textContent = text.outputType;
+  if (settingsLabels[1]) settingsLabels[1].textContent = text.language;
+  if (quickToggle) quickToggle.textContent = text.quick;
+  if (detailToggle) detailToggle.textContent = text.detailed;
+  if (welcome) {
+    welcome.querySelector(".welcome-title").textContent = text.welcomeTitle;
+    welcome.querySelector(".welcome-body").textContent = text.welcomeBody;
+    welcome.querySelector(".welcome-disclaimer").textContent =
+      text.welcomeDisclaimer;
+  }
 }
 
 async function apiFetch(path, options = {}) {
@@ -249,14 +316,15 @@ function clearChatWindow() {
 
 function showWelcomeMessage() {
   const chatWindow = document.getElementById("chatWindow");
+  const text = UI_TEXT[language] || UI_TEXT.en;
   const div = document.createElement("div");
   div.className = "message bot-message welcome";
   div.innerHTML = `
     <div class="bot-avatar">⚖️</div>
     <div class="message-content">
-      <p><strong>Hello! I'm your AI Legal Assistant.</strong></p>
-      <p>Describe your legal problem in simple language and I'll guide you step-by-step on what to do, where to complain, and what your rights are.</p>
-      <p class="disclaimer">⚠️ This is for informational purposes only and does not constitute legal advice.</p>
+      <p><strong class="welcome-title">${text.welcomeTitle}</strong></p>
+      <p class="welcome-body">${text.welcomeBody}</p>
+      <p class="disclaimer welcome-disclaimer">${text.welcomeDisclaimer}</p>
     </div>
   `;
   chatWindow.appendChild(div);
@@ -808,6 +876,12 @@ function toggleProfileMenu(event) {
 function openProfilePage(event) {
   event.stopPropagation();
   window.location.href = "profile.html";
+}
+
+function selectProfileLanguage(event, lang) {
+  event.stopPropagation();
+  setLanguage(lang);
+  document.getElementById("profileDropdown")?.classList.add("hidden");
 }
 
 document.addEventListener("click", function (event) {
