@@ -414,23 +414,22 @@ function appendBotMessage(text, category = "", urgency = "normal", save = true) 
 }
 
 function formatResponse(text) {
-  const safeText = escapeHtml(text);
+  const cleanText = text
+    .replace(/---CASE_ANALYSIS_START---[\s\S]*?---CASE_ANALYSIS_END---/g, "")
+    .replace(/---CASE_ANALYSIS_START---[\s\S]*$/g, "")
+    .trim();
 
-  return safeText
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, "$1<em>$2</em>")
+  const mdHtml = marked.parse(cleanText);
+
+  return mdHtml
     .replace(/🔍 ISSUE TYPE/g, "<strong>🔍 ISSUE TYPE</strong>")
     .replace(/📋 STEPS TO TAKE/g, "<strong>📋 STEPS TO TAKE</strong>")
-    .replace(
-      /🏛️ WHERE TO FILE COMPLAINT/g,
-      "<strong>🏛️ WHERE TO FILE COMPLAINT</strong>",
-    )
+    .replace(/🏛️ WHERE TO FILE COMPLAINT/g, "<strong>🏛️ WHERE TO FILE COMPLAINT</strong>")
     .replace(/⚖️ YOUR RIGHTS/g, "<strong>⚖️ YOUR RIGHTS</strong>")
     .replace(/💡 IMPORTANT TIP/g, "<strong>💡 IMPORTANT TIP</strong>")
-    .replace(/\n/g, "<br>")
     .replace(
-      /(https?:\/\/[^\s<]+)/g,
-      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#1a56db">$1</a>',
+      /<a href="(https?:\/\/[^"]+)">/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#1a56db">',
     );
 }
 
