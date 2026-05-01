@@ -74,6 +74,12 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class UserProfileResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+
+
 class SessionListItem(BaseModel):
     id: int
     title: str
@@ -153,6 +159,15 @@ async def login_user(payload: AuthRequest, db: Session = Depends(get_db)):
 
     token = create_access_token({"sub": str(user.id)})
     return TokenResponse(access_token=token)
+
+
+@app.get("/me", response_model=UserProfileResponse)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return UserProfileResponse(
+        id=current_user.id,
+        name=current_user.name,
+        email=current_user.email,
+    )
 
 
 @app.post("/analyze", response_model=LegalResponse)

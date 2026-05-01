@@ -4,6 +4,7 @@ let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
 let isSidebarCollapsed = false;
+let currentUserId = null;
 let replyMode = normalizeReplyMode(localStorage.getItem("replyMode")); // 'quick' or 'detail'
 let language = normalizeLanguage(localStorage.getItem("language")); // 'en' or 'hi'
 const UI_TEXT = {
@@ -85,12 +86,54 @@ function ensureAuthenticated() {
     redirectToAuth();
     return false;
   }
+  currentUserId = parseJwtPayload(token)?.sub || null;
   return true;
+}
+
+function getInitials(name) {
+  return (
+    (name || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0].toUpperCase())
+      .join("") || "--"
+  );
+}
+
+function updateProfileUI(user) {
+  const profileAvatar = document.getElementById("profileAvatar");
+  const profileName = document.getElementById("profileName");
+  const profileEmail = document.getElementById("profileEmail");
+
+  if (profileAvatar) profileAvatar.textContent = getInitials(user.name);
+  if (profileName) profileName.textContent = user.name;
+  if (profileEmail) profileEmail.textContent = user.email;
+}
+
+async function loadCurrentUser() {
+  const token = getStoredToken();
+  const payload = parseJwtPayload(token);
+  currentUserId = payload?.sub || null;
+  if (!currentUserId) {
+    redirectToAuth();
+    return;
+  }
+
+  const response = await apiFetch("/me");
+  if (!response.ok) {
+    redirectToAuth();
+    return;
+  }
+
+  updateProfileUI(await response.json());
 }
 
 // ─── On Page Load ───────────────────────────────────────────
 window.addEventListener("load", async () => {
   if (!ensureAuthenticated()) return;
+  await loadCurrentUser();
   applySidebarState();
   await renderSidebar();
   await loadLastSession();
