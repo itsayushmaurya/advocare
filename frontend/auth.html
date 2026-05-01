@@ -464,7 +464,7 @@
             />
             <button type="button" class="password-toggle" onclick="togglePasswordVisibility('passwordInput', this)">👁️</button>
           </div>
-          <div class="password-requirements">
+          <div class="password-requirements" id="passwordRequirementsContainer">
             <div class="req-item" id="req-length"><span class="req-icon">✗</span> At least 7 characters</div>
             <div class="req-item" id="req-upper"><span class="req-icon">✗</span> At least one uppercase letter</div>
             <div class="req-item" id="req-lower"><span class="req-icon">✗</span> At least one lowercase letter</div>
@@ -472,18 +472,20 @@
             <div class="req-item" id="req-special"><span class="req-icon">✗</span> At least one special character (!@#$%^&*)</div>
           </div>
 
-          <label class="auth-label" for="confirmPasswordInput">Re-enter Password</label>
-          <div class="password-wrapper">
-            <input
-              id="confirmPasswordInput"
-              class="auth-input password-input"
-              type="password"
-              placeholder="Re-enter your password"
-              oninput="validateConfirmPassword(); checkFormValidity()"
-            />
-            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPasswordInput', this)">👁️</button>
+          <div id="confirmPasswordFieldContainer" style="display: none;">
+            <label class="auth-label" for="confirmPasswordInput">Re-enter Password</label>
+            <div class="password-wrapper">
+              <input
+                id="confirmPasswordInput"
+                class="auth-input password-input"
+                type="password"
+                placeholder="Re-enter your password"
+                oninput="validateConfirmPassword(); checkFormValidity()"
+              />
+              <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPasswordInput', this)">👁️</button>
+            </div>
+            <div class="confirm-password-feedback" id="confirmPasswordFeedback"></div>
           </div>
-          <div class="confirm-password-feedback" id="confirmPasswordFeedback"></div>
 
           <div style="display: flex; align-items: flex-start; gap: 8px; margin-top: 16px; display: none;" id="privacyContainer">
             <input
@@ -683,6 +685,10 @@
          document.getElementById("ageFieldContainer").style.display = isLogin ? "none" : "block";
          document.getElementById("userTypeFieldContainer").style.display = isLogin ? "none" : "block";
          document.getElementById("privacyContainer").style.display = isLogin ? "none" : "flex";
+         
+         // Show/hide password requirements and confirm password (login mode only)
+         document.getElementById("passwordRequirementsContainer").style.display = isLogin ? "none" : "block";
+         document.getElementById("confirmPasswordFieldContainer").style.display = isLogin ? "none" : "block";
          
          // Update footer text and link
          const footerText = document.getElementById("authFooterText");
