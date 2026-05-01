@@ -869,6 +869,10 @@ function toggleSidebar() {
 
 function toggleProfileMenu(event) {
   event.stopPropagation();
+  if (event.target.closest(".profile-menu-item")?.textContent.trim() === "Privacy Policy") {
+    window.location.href = "privacy.html";
+    return;
+  }
   const dropdown = document.getElementById("profileDropdown");
   dropdown?.classList.toggle("hidden");
 }
