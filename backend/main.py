@@ -1,10 +1,13 @@
 from datetime import datetime
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
 import uvicorn
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from auth import create_access_token, get_current_user, hash_password, verify_password
 from db import get_db
@@ -13,11 +16,17 @@ from prompt_engine import build_prompt, build_followup_prompt
 from classifier import classify_issue, detect_urgency
 from models import Message, Session as ChatSession, User
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(
     title="Be Your Own Lawyer API",
     description="AI-powered legal assistant for Indian citizens",
     version="1.0.0"
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, lambda req, exc: HTTPException(
+    status_code=429,
+    detail="Too many requests. Please wait a moment before trying again."
+))
 
 # Allow frontend to call backend
 app.add_middleware(
@@ -121,7 +130,9 @@ async def login_user(payload: AuthRequest, db: Session = Depends(get_db)):
 
 
 @app.post("/analyze", response_model=LegalResponse)
+@limiter.limit("10/minute")
 async def analyze_legal_problem(
+    request: Request,
     query: LegalQuery,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
