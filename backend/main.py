@@ -142,7 +142,7 @@ async def register_user(payload: RegisterRequest, db: Session = Depends(get_db))
 @app.post("/login", response_model=TokenResponse)
 async def login_user(payload: AuthRequest, db: Session = Depends(get_db)):
     email = payload.email.strip().lower()
-    password = payload.password
+    password = payload.password.strip()
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email and password are required.")
