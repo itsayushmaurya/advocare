@@ -450,6 +450,7 @@
             class="auth-input"
             type="email"
             placeholder="you@example.com"
+            oninput="checkFormValidity()"
             required
           />
 
@@ -650,7 +651,7 @@
         const privacyCheckbox = document.getElementById("privacyCheckbox");
 
         const passwordValid = validatePassword();
-        const confirmValid = password === confirmPassword && confirmPassword !== "";
+        const confirmValid = password === confirmPassword && password !== "" && confirmPassword !== "";
         
         const nameValid = name.length > 0;
         const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
