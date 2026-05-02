@@ -157,6 +157,113 @@
         color: #ef4444;
       }
 
+      .home-profile-submenu {
+        position: relative;
+      }
+
+      .home-language-submenu {
+        position: absolute;
+        top: 0;
+        right: calc(100% + 8px);
+        display: none;
+        width: 130px;
+        padding: 6px;
+        background: #111118;
+        border: 1px solid #2a2a3a;
+        border-radius: 8px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      }
+
+      .home-profile-submenu:hover .home-language-submenu,
+      .home-profile-submenu.open .home-language-submenu {
+        display: block;
+      }
+
+      .home-language-submenu button {
+        width: 100%;
+        padding: 8px 10px;
+        background: transparent;
+        border: 0;
+        border-radius: 6px;
+        color: #f0f0ff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        text-align: left;
+      }
+
+      .home-language-submenu button:hover {
+        background: #1a1a24;
+      }
+
+      .home-chat-nav {
+        display: none;
+        margin-right: auto;
+        margin-left: 24px;
+      }
+
+      .home-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.62);
+        z-index: 300;
+      }
+
+      .home-modal-backdrop.hidden {
+        display: none;
+      }
+
+      .home-modal {
+        width: min(420px, 100%);
+        background: #111118;
+        border: 1px solid #2a2a3a;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        padding: 24px;
+      }
+
+      .home-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .home-modal h3 {
+        color: #ffffff;
+        font-size: 20px;
+      }
+
+      .home-modal-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid #2a2a3a;
+        background: #1a1a24;
+        color: #f0f0ff;
+        cursor: pointer;
+      }
+
+      .home-modal-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 0;
+        border-top: 1px solid #2a2a3a;
+        color: #8888aa;
+        font-size: 14px;
+      }
+
+      .home-modal-row span:last-child {
+        color: #f0f0ff;
+        text-align: right;
+      }
+
       .nav-btn {
         background: #1a1a24;
         border: 1px solid #2a2a3a;
@@ -482,6 +589,7 @@
           <a href="auth.html?tab=login" class="nav-btn">Sign In</a>
           <a href="auth.html?tab=register" class="nav-btn primary">Get Started Free →</a>
         </div>
+        <a href="index.html?new=true" class="nav-btn primary home-chat-nav" id="homeChatNav">Start Chatting</a>
         <div class="home-profile-container" id="homeProfileContainer">
           <button class="home-profile-button" id="homeProfileButton" type="button">
             <span class="home-avatar" id="homeProfileAvatar">U</span>
@@ -490,10 +598,14 @@
           <div class="home-profile-dropdown hidden" id="homeProfileDropdown">
             <div class="home-profile-email" id="homeProfileEmail"></div>
             <button class="home-profile-item" type="button" data-home-action="profile">Profile</button>
-            <button class="home-profile-item" type="button" data-home-action="language">
+            <div class="home-profile-item home-profile-submenu" data-home-action="language">
               <span>Language</span>
-              <span id="homeLanguageLabel">English</span>
-            </button>
+              <span>›</span>
+              <div class="home-language-submenu">
+                <button type="button" data-home-lang="en">English</button>
+                <button type="button" data-home-lang="hi">हिंदी</button>
+              </div>
+            </div>
             <button class="home-profile-item" type="button" data-home-action="privacy">Privacy Policy</button>
             <button class="home-profile-item" type="button" data-home-action="contact">Contact Us</button>
             <button class="home-profile-item logout" type="button" data-home-action="logout">Logout</button>
@@ -689,6 +801,31 @@
       </div>
     </footer>
 
+    <div class="home-modal-backdrop hidden" id="homeProfileModal">
+      <div class="home-modal">
+        <div class="home-modal-header">
+          <h3>Profile</h3>
+          <button class="home-modal-close" type="button" id="homeProfileModalClose">×</button>
+        </div>
+        <div class="home-modal-row">
+          <span>Name</span>
+          <span id="homeModalName">User</span>
+        </div>
+        <div class="home-modal-row">
+          <span>Email</span>
+          <span id="homeModalEmail">-</span>
+        </div>
+        <div class="home-modal-row">
+          <span>Age</span>
+          <span id="homeModalAge">-</span>
+        </div>
+        <div class="home-modal-row">
+          <span>User Type</span>
+          <span id="homeModalUserType">-</span>
+        </div>
+      </div>
+    </div>
+
     <script>
       const HOME_LANGUAGE_KEY = "advocare_home_language";
       const HOME_TRANSLATIONS = {
@@ -696,6 +833,8 @@
           nav: ["Home", "How it Works", "Features"],
           signIn: "Sign In",
           getStarted: "Get Started Free →",
+          startChatting: "Start Chatting →",
+          startChat: "Start a Chat",
           heroTitle: "Know Your Rights.<br>Take Action. For Free.",
           heroText:
             "Advocare is India's first AI-powered legal assistant built for common citizens.<br>Describe your problem in plain language and get instant, actionable legal guidance<br>— no lawyer fees, no confusing jargon, no waiting.",
@@ -753,6 +892,8 @@
           nav: ["होम", "यह कैसे काम करता है", "विशेषताएं"],
           signIn: "साइन इन",
           getStarted: "मुफ्त शुरू करें →",
+          startChatting: "चैट शुरू करें →",
+          startChat: "चैट शुरू करें",
           heroTitle: "अपने अधिकार जानें।<br>कार्रवाई करें। मुफ्त में।",
           heroText:
             "Advocare आम नागरिकों के लिए बनाया गया भारत का AI कानूनी सहायक है।<br>अपनी समस्या सरल भाषा में बताएं और तुरंत उपयोगी कानूनी मार्गदर्शन पाएं<br>— वकील की फीस नहीं, कठिन भाषा नहीं, इंतजार नहीं।",
@@ -848,10 +989,12 @@
         const navButtons = document.querySelectorAll(".navbar-buttons .nav-btn");
         setText(navButtons[0], text.signIn);
         setText(navButtons[1], text.getStarted);
+        setText(document.getElementById("homeChatNav"), text.startChat);
 
         setText(document.querySelector(".hero h2"), text.heroTitle, true);
         setText(document.querySelector(".hero p"), text.heroText, true);
-        setText(document.querySelector(".hero-cta"), text.heroCta);
+        const loggedIn = isValidToken(localStorage.getItem("advocare_token"));
+        setText(document.querySelector(".hero-cta"), loggedIn ? text.startChatting : text.heroCta);
         setText(document.querySelector(".hero-cta + a"), text.heroLogin);
         document.querySelectorAll(".hero-content > div:last-child span:not(:nth-child(even))").forEach((item, index) => setText(item, text.trust[index]));
 
@@ -879,7 +1022,7 @@
 
         setText(document.querySelector(".cta-content h3"), text.ctaTitle);
         setText(document.querySelector(".cta-content p"), text.ctaText);
-        setText(document.querySelector(".cta-content .hero-cta"), text.heroCta);
+        setText(document.querySelector(".cta-content .hero-cta"), loggedIn ? text.startChatting : text.heroCta);
         setText(document.querySelector(".cta-content p:last-child"), text.ctaSubtext);
 
         setText(document.querySelector(".footer-section:first-child div div div:nth-child(2)"), text.footerTagline);
@@ -892,7 +1035,7 @@
 
         const menuItems = document.querySelectorAll(".home-profile-item");
         setText(menuItems[0], text.menu.profile);
-        if (menuItems[1]) menuItems[1].innerHTML = `<span>${text.menu.language}</span><span id="homeLanguageLabel">${lang === "hi" ? "हिंदी" : "English"}</span>`;
+        if (menuItems[1]) menuItems[1].querySelector("span:first-child").textContent = text.menu.language;
         setText(menuItems[2], text.menu.privacy);
         setText(menuItems[3], text.menu.contact);
         setText(menuItems[4], text.menu.logout);
@@ -902,9 +1045,17 @@
         const loggedIn = isValidToken(localStorage.getItem("advocare_token"));
         const navButtons = document.querySelector(".navbar-buttons");
         const profileContainer = document.getElementById("homeProfileContainer");
+        const chatNav = document.getElementById("homeChatNav");
 
         navButtons.style.display = loggedIn ? "none" : "flex";
         profileContainer.style.display = loggedIn ? "block" : "none";
+        chatNav.style.display = loggedIn ? "inline-block" : "none";
+
+        document.querySelectorAll(".hero-cta").forEach((cta) => {
+          cta.href = loggedIn ? "index.html?new=true" : "auth.html?tab=register";
+        });
+        const heroLogin = document.querySelector(".hero-cta + a");
+        if (heroLogin) heroLogin.style.display = loggedIn ? "none" : "inline";
 
         if (!loggedIn) return;
         const name = localStorage.getItem("advocare_user_name") || "User";
@@ -912,6 +1063,10 @@
         setText(document.getElementById("homeProfileAvatar"), getInitials(name));
         setText(document.getElementById("homeProfileName"), name);
         setText(document.getElementById("homeProfileEmail"), email);
+        setText(document.getElementById("homeModalName"), name);
+        setText(document.getElementById("homeModalEmail"), email || "-");
+        setText(document.getElementById("homeModalAge"), localStorage.getItem("advocare_user_age") || "-");
+        setText(document.getElementById("homeModalUserType"), localStorage.getItem("advocare_user_type") || "-");
       }
 
       window.addEventListener("load", () => {
@@ -921,6 +1076,8 @@
 
         const profileButton = document.getElementById("homeProfileButton");
         const dropdown = document.getElementById("homeProfileDropdown");
+        const modal = document.getElementById("homeProfileModal");
+        const modalClose = document.getElementById("homeProfileModalClose");
 
         profileButton.addEventListener("click", (event) => {
           event.stopPropagation();
@@ -929,14 +1086,26 @@
 
         dropdown.addEventListener("click", (event) => {
           event.stopPropagation();
+          const lang = event.target.closest("[data-home-lang]")?.dataset.homeLang;
+          if (lang) {
+            applyHomeLanguage(lang);
+            dropdown.classList.add("hidden");
+            dropdown.querySelector(".home-profile-submenu")?.classList.remove("open");
+            return;
+          }
+
           const action = event.target.closest("[data-home-action]")?.dataset.homeAction;
           if (!action) return;
-          if (action === "profile" || action === "contact") {
+          if (action === "profile") {
             dropdown.classList.add("hidden");
+            modal.classList.remove("hidden");
+          }
+          if (action === "contact") {
+            dropdown.classList.add("hidden");
+            alert("For support contact us at support@advocare.in");
           }
           if (action === "language") {
-            const nextLanguage = (localStorage.getItem(HOME_LANGUAGE_KEY) || "en") === "en" ? "hi" : "en";
-            applyHomeLanguage(nextLanguage);
+            event.target.closest(".home-profile-submenu")?.classList.toggle("open");
           }
           if (action === "privacy") {
             window.open("privacy.html", "_blank", "noopener");
@@ -951,6 +1120,10 @@
         });
 
         document.addEventListener("click", () => dropdown.classList.add("hidden"));
+        modalClose.addEventListener("click", () => modal.classList.add("hidden"));
+        modal.addEventListener("click", (event) => {
+          if (event.target === modal) modal.classList.add("hidden");
+        });
       });
     </script>
   </body>

@@ -269,6 +269,12 @@
         }
       });
 
+      if (new URLSearchParams(window.location.search).get('new') === 'true' && typeof loadLastSession === 'function') {
+        loadLastSession = async function() {
+          startNewSession();
+        };
+      }
+
       // Update settings UI whenever mode or language changes
       const originalSetReplyMode = window.setReplyMode;
       window.setReplyMode = function(mode) {
