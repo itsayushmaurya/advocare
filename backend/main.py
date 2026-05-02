@@ -74,6 +74,15 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    name: str
+    email: str
+    age: Optional[int] = None
+    user_type: str
+
+
 class UserProfileResponse(BaseModel):
     id: int
     name: str
@@ -147,7 +156,7 @@ async def register_user(payload: RegisterRequest, db: Session = Depends(get_db))
     return TokenResponse(access_token=token)
 
 
-@app.post("/login", response_model=TokenResponse)
+@app.post("/login", response_model=LoginResponse)
 async def login_user(payload: AuthRequest, db: Session = Depends(get_db)):
     email = payload.email.strip().lower()
     password = payload.password.strip()
@@ -160,7 +169,14 @@ async def login_user(payload: AuthRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
     token = create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token)
+    return LoginResponse(
+        access_token=token,
+        token_type="bearer",
+        name=user.name,
+        email=user.email,
+        age=user.age,
+        user_type=user.user_type
+    )
 
 
 @app.get("/me")

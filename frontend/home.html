@@ -1102,7 +1102,7 @@
           }
           if (action === "contact") {
             dropdown.classList.add("hidden");
-            alert("For support contact us at support@advocare.in");
+            window.location.href = "contact.html";
           }
           if (action === "language") {
             event.target.closest(".home-profile-submenu")?.classList.toggle("open");
@@ -1115,7 +1115,9 @@
             localStorage.removeItem("advocare_token");
             localStorage.removeItem("advocare_user_name");
             localStorage.removeItem("advocare_user_email");
-            window.location.href = "home.html";
+            localStorage.removeItem("advocare_user_age");
+            localStorage.removeItem("advocare_user_type");
+            window.location.href = "auth.html?tab=login";
           }
         });
 

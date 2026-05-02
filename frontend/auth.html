@@ -818,6 +818,10 @@
           }
 
           localStorage.setItem(TOKEN_KEY, data.access_token);
+          localStorage.setItem("advocare_user_name", data.name);
+          localStorage.setItem("advocare_user_email", data.email);
+          localStorage.setItem("advocare_user_age", data.age || "");
+          localStorage.setItem("advocare_user_type", data.user_type);
           
           // Verify token was saved before redirecting
           const savedToken = localStorage.getItem(TOKEN_KEY);
@@ -884,6 +888,10 @@
           }
 
           localStorage.setItem(TOKEN_KEY, data.access_token);
+          localStorage.setItem("advocare_user_name", name);
+          localStorage.setItem("advocare_user_email", email);
+          localStorage.setItem("advocare_user_age", age || "");
+          localStorage.setItem("advocare_user_type", userType);
           const savedToken = localStorage.getItem(TOKEN_KEY);
           if (savedToken) {
             allowNavigationWithoutWarning = true;
