@@ -73,6 +73,90 @@
         gap: 12px;
       }
 
+      .home-profile-container {
+        position: relative;
+        display: none;
+      }
+
+      .home-profile-button {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        border: 0;
+        color: #f0f0ff;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .home-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: #1a1a24;
+        border: 1px solid #2a2a3a;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .home-profile-name {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .home-profile-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        width: 230px;
+        padding: 8px;
+        background: #111118;
+        border: 1px solid #2a2a3a;
+        border-radius: 8px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+        z-index: 200;
+      }
+
+      .home-profile-dropdown.hidden {
+        display: none;
+      }
+
+      .home-profile-email {
+        padding: 10px 12px;
+        color: #8888aa;
+        font-size: 12px;
+        border-bottom: 1px solid #2a2a3a;
+        margin-bottom: 6px;
+        word-break: break-word;
+      }
+
+      .home-profile-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: transparent;
+        border: 0;
+        border-radius: 6px;
+        color: #f0f0ff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        padding: 9px 12px;
+        text-align: left;
+      }
+
+      .home-profile-item:hover {
+        background: #1a1a24;
+      }
+
+      .home-profile-item.logout {
+        color: #ef4444;
+      }
+
       .nav-btn {
         background: #1a1a24;
         border: 1px solid #2a2a3a;
@@ -398,6 +482,23 @@
           <a href="auth.html?tab=login" class="nav-btn">Sign In</a>
           <a href="auth.html?tab=register" class="nav-btn primary">Get Started Free →</a>
         </div>
+        <div class="home-profile-container" id="homeProfileContainer">
+          <button class="home-profile-button" id="homeProfileButton" type="button">
+            <span class="home-avatar" id="homeProfileAvatar">U</span>
+            <span class="home-profile-name" id="homeProfileName">User</span>
+          </button>
+          <div class="home-profile-dropdown hidden" id="homeProfileDropdown">
+            <div class="home-profile-email" id="homeProfileEmail"></div>
+            <button class="home-profile-item" type="button" data-home-action="profile">Profile</button>
+            <button class="home-profile-item" type="button" data-home-action="language">
+              <span>Language</span>
+              <span id="homeLanguageLabel">English</span>
+            </button>
+            <button class="home-profile-item" type="button" data-home-action="privacy">Privacy Policy</button>
+            <button class="home-profile-item" type="button" data-home-action="contact">Contact Us</button>
+            <button class="home-profile-item logout" type="button" data-home-action="logout">Logout</button>
+          </div>
+        </div>
       </div>
     </nav>
 
@@ -589,25 +690,267 @@
     </footer>
 
     <script>
-      // Check if user is already logged in
-      window.addEventListener("load", () => {
-        const token = localStorage.getItem("advocare_token");
-        if (token) {
-          // Simple check if token exists
-          try {
-            const payloadPart = token.split(".")[1];
-            if (payloadPart) {
-              const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
-              const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-              const payload = JSON.parse(atob(padded));
-              if (payload.exp && payload.exp > Math.floor(Date.now() / 1000)) {
-                window.location.href = "index.html";
-              }
-            }
-          } catch {
-            // Token invalid, stay on home page
-          }
+      const HOME_LANGUAGE_KEY = "advocare_home_language";
+      const HOME_TRANSLATIONS = {
+        en: {
+          nav: ["Home", "How it Works", "Features"],
+          signIn: "Sign In",
+          getStarted: "Get Started Free →",
+          heroTitle: "Know Your Rights.<br>Take Action. For Free.",
+          heroText:
+            "Advocare is India's first AI-powered legal assistant built for common citizens.<br>Describe your problem in plain language and get instant, actionable legal guidance<br>— no lawyer fees, no confusing jargon, no waiting.",
+          heroCta: "Get Started Free →",
+          heroLogin: "Already have an account? Sign In",
+          trust: ["🔒 100% Private", "🇮🇳 India Specific", "🆓 Always Free"],
+          featuresLabel: "Features",
+          featuresHeadline: "Everything you need to fight for your rights",
+          featureCards: [
+            ["AI Legal Analysis", "Describe your problem in simple language. Get structured legal guidance specific to Indian law instantly."],
+            ["Case Strength Meter", "Know how strong your case is before you act. See your strong points and weak points clearly."],
+            ["Hindi & English", "Get legal guidance in the language you are most comfortable in. Switch anytime with one click."],
+            ["Urgency Detection", "If your situation is dangerous, Advocare immediately shows emergency helplines and priority steps."],
+            ["PDF Export", "Download your legal guidance as a clean PDF to share with a lawyer or keep for your records."],
+            ["WhatsApp Share", "Share your legal guidance directly on WhatsApp with family or your local legal aid contact."],
+          ],
+          howLabel: "How It Works",
+          howHeadline: "Get legal clarity in 3 simple steps",
+          steps: [
+            ["Describe Your Problem", "Type your legal issue in plain Hindi or English. No legal knowledge needed. Just explain what happened to you."],
+            ["Get Instant Guidance", "Advocare analyzes your situation, identifies your legal rights, and gives you a clear step-by-step action plan."],
+            ["Take Action", "File complaints on official government portals, call the right helplines, and know exactly what to do next."],
+          ],
+          whoLabel: "Who Is It For",
+          whoHeadline: "Built for every Indian citizen",
+          whoCards: [
+            ["Salaried Employees", "Unpaid salary, wrongful termination, workplace harassment"],
+            ["Tenants & Landlords", "Deposit disputes, eviction, rental agreement issues"],
+            ["Consumers", "Defective products, refund denied, e-commerce fraud"],
+            ["Fraud Victims", "UPI scams, cybercrime, identity theft, online cheating"],
+            ["Families", "Domestic issues, property disputes, marriage and divorce matters"],
+            ["Students & First-timers", "Anyone facing a legal problem for the very first time"],
+          ],
+          stats: ["Cases Analyzed", "Legal Categories", "Languages Supported", "Free Forever"],
+          ctaTitle: "Your rights matter. Start today.",
+          ctaText: "Join thousands of Indians who used Advocare to understand their legal rights and take the right action.",
+          ctaSubtext: "No sign up fees. No hidden charges. No lawyer needed.",
+          footerTagline: "Free AI Legal Guidance for Every Indian",
+          footerQuick: "Quick Links",
+          footerLinks: ["How it Works", "Features", "Sign In", "Register"],
+          footerMission: "Location & Mission",
+          footerMissionText: ["🇮🇳 Made in India", "For Indian Citizens"],
+          footerBottom:
+            "© 2025 Advocare. This platform provides AI-generated information only and does not constitute legal advice. For emergencies call 112. • ",
+          privacy: "Privacy Policy",
+          menu: {
+            profile: "Profile",
+            language: "Language",
+            privacy: "Privacy Policy",
+            contact: "Contact Us",
+            logout: "Logout",
+          },
+        },
+        hi: {
+          nav: ["होम", "यह कैसे काम करता है", "विशेषताएं"],
+          signIn: "साइन इन",
+          getStarted: "मुफ्त शुरू करें →",
+          heroTitle: "अपने अधिकार जानें।<br>कार्रवाई करें। मुफ्त में।",
+          heroText:
+            "Advocare आम नागरिकों के लिए बनाया गया भारत का AI कानूनी सहायक है।<br>अपनी समस्या सरल भाषा में बताएं और तुरंत उपयोगी कानूनी मार्गदर्शन पाएं<br>— वकील की फीस नहीं, कठिन भाषा नहीं, इंतजार नहीं।",
+          heroCta: "मुफ्त शुरू करें →",
+          heroLogin: "पहले से खाता है? साइन इन करें",
+          trust: ["🔒 100% निजी", "🇮🇳 भारत के लिए", "🆓 हमेशा मुफ्त"],
+          featuresLabel: "विशेषताएं",
+          featuresHeadline: "अपने अधिकारों के लिए जरूरी हर मदद",
+          featureCards: [
+            ["AI कानूनी विश्लेषण", "अपनी समस्या सरल भाषा में बताएं। भारतीय कानून के अनुसार तुरंत व्यवस्थित कानूनी मार्गदर्शन पाएं।"],
+            ["केस स्ट्रेंथ मीटर", "कार्रवाई से पहले जानें कि आपका मामला कितना मजबूत है। मजबूत और कमजोर बातें साफ देखें।"],
+            ["हिंदी और अंग्रेजी", "जिस भाषा में आप सहज हैं, उसी में कानूनी मार्गदर्शन पाएं। एक क्लिक में भाषा बदलें।"],
+            ["तात्कालिकता पहचान", "यदि स्थिति खतरनाक है, Advocare तुरंत आपातकालीन हेल्पलाइन और प्राथमिक कदम दिखाता है।"],
+            ["PDF एक्सपोर्ट", "अपना कानूनी मार्गदर्शन साफ PDF के रूप में डाउनलोड करें और रिकॉर्ड में रखें या वकील से साझा करें।"],
+            ["WhatsApp शेयर", "अपना कानूनी मार्गदर्शन परिवार या स्थानीय कानूनी सहायता संपर्क से WhatsApp पर साझा करें।"],
+          ],
+          howLabel: "यह कैसे काम करता है",
+          howHeadline: "3 आसान चरणों में कानूनी स्पष्टता पाएं",
+          steps: [
+            ["अपनी समस्या बताएं", "अपना कानूनी मुद्दा सरल हिंदी या अंग्रेजी में लिखें। कानूनी ज्ञान जरूरी नहीं है। बस बताएं कि क्या हुआ।"],
+            ["तुरंत मार्गदर्शन पाएं", "Advocare आपकी स्थिति का विश्लेषण करता है, आपके अधिकार पहचानता है और स्पष्ट कार्य योजना देता है।"],
+            ["कार्रवाई करें", "सरकारी पोर्टल पर शिकायत करें, सही हेल्पलाइन पर कॉल करें और अगला कदम साफ जानें।"],
+          ],
+          whoLabel: "यह किसके लिए है",
+          whoHeadline: "हर भारतीय नागरिक के लिए बनाया गया",
+          whoCards: [
+            ["वेतनभोगी कर्मचारी", "वेतन न मिलना, गलत तरीके से नौकरी से निकालना, कार्यस्थल उत्पीड़न"],
+            ["किरायेदार और मकान मालिक", "डिपॉजिट विवाद, बेदखली, किराया समझौते की समस्या"],
+            ["उपभोक्ता", "खराब उत्पाद, रिफंड से इनकार, ई-कॉमर्स धोखाधड़ी"],
+            ["धोखाधड़ी पीड़ित", "UPI स्कैम, साइबर अपराध, पहचान चोरी, ऑनलाइन धोखा"],
+            ["परिवार", "घरेलू मुद्दे, संपत्ति विवाद, विवाह और तलाक के मामले"],
+            ["छात्र और पहली बार समस्या झेल रहे लोग", "जो पहली बार किसी कानूनी समस्या का सामना कर रहे हैं"],
+          ],
+          stats: ["मामलों का विश्लेषण", "कानूनी श्रेणियां", "समर्थित भाषाएं", "हमेशा मुफ्त"],
+          ctaTitle: "आपके अधिकार मायने रखते हैं। आज शुरू करें।",
+          ctaText: "उन हजारों भारतीयों से जुड़ें जिन्होंने Advocare से अपने कानूनी अधिकार समझे और सही कार्रवाई की।",
+          ctaSubtext: "कोई साइनअप फीस नहीं। कोई छिपा शुल्क नहीं। वकील की जरूरत नहीं।",
+          footerTagline: "हर भारतीय के लिए मुफ्त AI कानूनी मार्गदर्शन",
+          footerQuick: "त्वरित लिंक",
+          footerLinks: ["यह कैसे काम करता है", "विशेषताएं", "साइन इन", "रजिस्टर"],
+          footerMission: "स्थान और मिशन",
+          footerMissionText: ["🇮🇳 भारत में निर्मित", "भारतीय नागरिकों के लिए"],
+          footerBottom:
+            "© 2025 Advocare. यह प्लेटफॉर्म केवल AI-जनित जानकारी देता है और कानूनी सलाह नहीं है। आपात स्थिति में 112 पर कॉल करें। • ",
+          privacy: "गोपनीयता नीति",
+          menu: {
+            profile: "प्रोफाइल",
+            language: "भाषा",
+            privacy: "गोपनीयता नीति",
+            contact: "संपर्क करें",
+            logout: "लॉगआउट",
+          },
+        },
+      };
+
+      function isValidToken(token) {
+        if (!token) return false;
+        try {
+          const payloadPart = token.split(".")[1];
+          const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+          const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+          const payload = JSON.parse(atob(padded));
+          return payload.exp && payload.exp > Math.floor(Date.now() / 1000);
+        } catch {
+          return false;
         }
+      }
+
+      function getInitials(name) {
+        return (
+          (name || "")
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0].toUpperCase())
+            .join("") || "U"
+        );
+      }
+
+      function setText(el, value, html = false) {
+        if (!el) return;
+        if (html) el.innerHTML = value;
+        else el.textContent = value;
+      }
+
+      function applyHomeLanguage(lang) {
+        const text = HOME_TRANSLATIONS[lang] || HOME_TRANSLATIONS.en;
+        localStorage.setItem(HOME_LANGUAGE_KEY, lang);
+        document.documentElement.lang = lang;
+
+        document.querySelectorAll(".navbar-inner > div:nth-of-type(1) a").forEach((link, index) => setText(link, text.nav[index]));
+        const navButtons = document.querySelectorAll(".navbar-buttons .nav-btn");
+        setText(navButtons[0], text.signIn);
+        setText(navButtons[1], text.getStarted);
+
+        setText(document.querySelector(".hero h2"), text.heroTitle, true);
+        setText(document.querySelector(".hero p"), text.heroText, true);
+        setText(document.querySelector(".hero-cta"), text.heroCta);
+        setText(document.querySelector(".hero-cta + a"), text.heroLogin);
+        document.querySelectorAll(".hero-content > div:last-child span:not(:nth-child(even))").forEach((item, index) => setText(item, text.trust[index]));
+
+        const sectionHeaders = document.querySelectorAll(".section-header");
+        setText(sectionHeaders[0]?.querySelector("div"), text.featuresLabel);
+        setText(sectionHeaders[0]?.querySelector("h3"), text.featuresHeadline);
+        setText(sectionHeaders[1]?.querySelector("div"), text.howLabel);
+        setText(sectionHeaders[1]?.querySelector("h3"), text.howHeadline);
+        setText(sectionHeaders[2]?.querySelector("div"), text.whoLabel);
+        setText(sectionHeaders[2]?.querySelector("h3"), text.whoHeadline);
+
+        document.querySelectorAll("#features .feature-card").forEach((card, index) => {
+          setText(card.querySelector("h4"), text.featureCards[index][0]);
+          setText(card.querySelector("p"), text.featureCards[index][1]);
+        });
+        document.querySelectorAll("#how-it-works .step").forEach((step, index) => {
+          setText(step.querySelector("h4"), text.steps[index][0]);
+          setText(step.querySelector("p"), text.steps[index][1]);
+        });
+        document.querySelectorAll("section:not(#features) .features-grid .feature-card").forEach((card, index) => {
+          setText(card.querySelector("h4"), text.whoCards[index][0]);
+          setText(card.querySelector("p"), text.whoCards[index][1]);
+        });
+        document.querySelectorAll("section[style*='background: #111118'] > div > div > div:last-child").forEach((label, index) => setText(label, text.stats[index]));
+
+        setText(document.querySelector(".cta-content h3"), text.ctaTitle);
+        setText(document.querySelector(".cta-content p"), text.ctaText);
+        setText(document.querySelector(".cta-content .hero-cta"), text.heroCta);
+        setText(document.querySelector(".cta-content p:last-child"), text.ctaSubtext);
+
+        setText(document.querySelector(".footer-section:first-child div div div:nth-child(2)"), text.footerTagline);
+        setText(document.querySelectorAll(".footer-section h4")[0], text.footerQuick);
+        document.querySelectorAll(".footer-section:nth-child(2) a").forEach((link, index) => setText(link, text.footerLinks[index]));
+        setText(document.querySelectorAll(".footer-section h4")[1], text.footerMission);
+        document.querySelectorAll(".footer-section:nth-child(3) p").forEach((item, index) => setText(item, text.footerMissionText[index]));
+        const footerBottom = document.querySelector(".footer-bottom p");
+        if (footerBottom) footerBottom.innerHTML = `${text.footerBottom}<a href="privacy.html" target="_blank" style="color: #4f6ef7; text-decoration: none; transition: color 0.2s ease;" onmouseover="this.style.color='#6b84ff'" onmouseout="this.style.color='#4f6ef7'">${text.privacy}</a>`;
+
+        const menuItems = document.querySelectorAll(".home-profile-item");
+        setText(menuItems[0], text.menu.profile);
+        if (menuItems[1]) menuItems[1].innerHTML = `<span>${text.menu.language}</span><span id="homeLanguageLabel">${lang === "hi" ? "हिंदी" : "English"}</span>`;
+        setText(menuItems[2], text.menu.privacy);
+        setText(menuItems[3], text.menu.contact);
+        setText(menuItems[4], text.menu.logout);
+      }
+
+      function renderAuthState() {
+        const loggedIn = isValidToken(localStorage.getItem("advocare_token"));
+        const navButtons = document.querySelector(".navbar-buttons");
+        const profileContainer = document.getElementById("homeProfileContainer");
+
+        navButtons.style.display = loggedIn ? "none" : "flex";
+        profileContainer.style.display = loggedIn ? "block" : "none";
+
+        if (!loggedIn) return;
+        const name = localStorage.getItem("advocare_user_name") || "User";
+        const email = localStorage.getItem("advocare_user_email") || "";
+        setText(document.getElementById("homeProfileAvatar"), getInitials(name));
+        setText(document.getElementById("homeProfileName"), name);
+        setText(document.getElementById("homeProfileEmail"), email);
+      }
+
+      window.addEventListener("load", () => {
+        const savedLanguage = localStorage.getItem(HOME_LANGUAGE_KEY) || "en";
+        applyHomeLanguage(savedLanguage);
+        renderAuthState();
+
+        const profileButton = document.getElementById("homeProfileButton");
+        const dropdown = document.getElementById("homeProfileDropdown");
+
+        profileButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          dropdown.classList.toggle("hidden");
+        });
+
+        dropdown.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const action = event.target.closest("[data-home-action]")?.dataset.homeAction;
+          if (!action) return;
+          if (action === "profile" || action === "contact") {
+            dropdown.classList.add("hidden");
+          }
+          if (action === "language") {
+            const nextLanguage = (localStorage.getItem(HOME_LANGUAGE_KEY) || "en") === "en" ? "hi" : "en";
+            applyHomeLanguage(nextLanguage);
+          }
+          if (action === "privacy") {
+            window.open("privacy.html", "_blank", "noopener");
+            dropdown.classList.add("hidden");
+          }
+          if (action === "logout") {
+            localStorage.removeItem("advocare_token");
+            localStorage.removeItem("advocare_user_name");
+            localStorage.removeItem("advocare_user_email");
+            window.location.href = "home.html";
+          }
+        });
+
+        document.addEventListener("click", () => dropdown.classList.add("hidden"));
       });
     </script>
   </body>
