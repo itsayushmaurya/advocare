@@ -519,6 +519,32 @@
       let mode = "login";
       let userType = "citizen";
       let previousUserType = "citizen";
+      let isFormDirty = false;
+
+      function hasRegisterFormData(currentMode = mode) {
+        if (currentMode !== "register") return false;
+        const name = document.getElementById("nameInput").value.trim();
+        const email = document.getElementById("emailInput").value.trim();
+        const password = document.getElementById("passwordInput").value;
+        const confirmPassword = document.getElementById("confirmPasswordInput").value;
+        const age = document.getElementById("ageInput").value.trim();
+        return !!(name || email || password || confirmPassword || age);
+      }
+
+      function markFormDirty() {
+        isFormDirty = true;
+      }
+
+      function clearFormDirty() {
+        isFormDirty = false;
+      }
+
+      function confirmLeavePage(message = "You have unsaved changes. Do you want to leave without saving?", currentMode = mode) {
+        if (hasRegisterFormData(currentMode)) {
+          return confirm(message);
+        }
+        return true;
+      }
 
       function parseJwtPayload(token) {
         try {
@@ -697,8 +723,14 @@
       }
 
        function setMode(nextMode) {
+         // Check if switching away from register with unsaved data BEFORE changing mode
+         if (nextMode === "login" && mode === "register" && !confirmLeavePage("Your registration data will be lost. Continue?", "register")) {
+           return;
+         }
+
          mode = nextMode;
          const isLogin = mode === "login";
+
          document.getElementById("loginToggle").classList.toggle("active", isLogin);
          document.getElementById("registerToggle").classList.toggle("active", !isLogin);
          document.getElementById("submitBtn").textContent = isLogin ? "Login" : "Create Account";
@@ -745,6 +777,7 @@
            document.getElementById("passwordInput").classList.remove("password-valid");
            document.getElementById("confirmPasswordInput").classList.remove("match-success", "match-error");
            userType = "citizen";
+           clearFormDirty();
          } else {
            document.getElementById("emailInput").value = "";
            document.getElementById("passwordInput").value = "";
@@ -873,9 +906,59 @@
         }
       }
 
+      // Track form input changes
+      function setupFormTracking() {
+        const inputs = document.querySelectorAll("#nameInput, #ageInput, #emailInput, #passwordInput, #confirmPasswordInput");
+        inputs.forEach(input => {
+          input.addEventListener("input", markFormDirty);
+        });
+        
+        const userTypeButtons = document.querySelectorAll(".auth-toggle-btn");
+        userTypeButtons.forEach(btn => {
+          btn.addEventListener("click", markFormDirty);
+        });
+
+        const privacyCheckbox = document.getElementById("privacyCheckbox");
+        privacyCheckbox?.addEventListener("change", markFormDirty);
+      }
+
+      // Handle browser back/refresh
+      window.addEventListener("beforeunload", (e) => {
+        if (hasRegisterFormData()) {
+          e.preventDefault();
+          e.returnValue = "";
+          return "";
+        }
+      });
+
+      // Handle back button and navigation
+      window.addEventListener("popstate", (e) => {
+        if (!confirmLeavePage("Your registration data will be lost. Continue?")) {
+          window.history.forward();
+        }
+      });
+
+      // Handle logo click (to home)
+      document.addEventListener("DOMContentLoaded", () => {
+        const logo = document.querySelector(".logo");
+        if (logo) {
+          logo.addEventListener("click", (e) => {
+            if (!confirmLeavePage("Your registration data will be lost. Go to home?")) {
+              e.preventDefault();
+              e.stopPropagation();
+            } else {
+              window.location.href = "home.html";
+            }
+          });
+        }
+      });
+
       window.addEventListener("load", () => {
         const form = document.getElementById("authForm");
         form.addEventListener("submit", handleAuth);
+
+        // Setup tracking for form inputs
+        setupFormTracking();
 
         const token = localStorage.getItem(TOKEN_KEY);
         if (isTokenValid(token)) {
