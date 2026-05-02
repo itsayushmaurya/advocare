@@ -520,6 +520,7 @@
       let userType = "citizen";
       let previousUserType = "citizen";
       let isFormDirty = false;
+      let allowNavigationWithoutWarning = false;
 
       function hasRegisterFormData(currentMode = mode) {
         if (currentMode !== "register") return false;
@@ -821,6 +822,7 @@
           // Verify token was saved before redirecting
           const savedToken = localStorage.getItem(TOKEN_KEY);
           if (savedToken) {
+            allowNavigationWithoutWarning = true;
             window.location.href = "index.html";
           } else {
             throw new Error("Failed to save authentication token.");
@@ -884,6 +886,7 @@
           localStorage.setItem(TOKEN_KEY, data.access_token);
           const savedToken = localStorage.getItem(TOKEN_KEY);
           if (savedToken) {
+            allowNavigationWithoutWarning = true;
             window.location.href = "index.html";
           } else {
             throw new Error("Failed to save authentication token.");
@@ -924,7 +927,7 @@
 
       // Handle browser back/refresh
       window.addEventListener("beforeunload", (e) => {
-        if (hasRegisterFormData()) {
+        if (!allowNavigationWithoutWarning && hasRegisterFormData()) {
           e.preventDefault();
           e.returnValue = "";
           return "";
@@ -980,3 +983,4 @@
     </script>
   </body>
 </html>
+

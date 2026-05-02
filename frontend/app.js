@@ -973,5 +973,5 @@ function logout() {
   conversationHistory = [];
   currentSessionId = null;
   isLoading = false;
-  window.location.href = "auth.html";
+  window.location.href = "auth.html?tab=login";
 }
