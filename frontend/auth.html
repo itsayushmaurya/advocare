@@ -496,7 +496,7 @@
               oninput="checkFormValidity()"
             />
             <label for="privacyCheckbox" style="font-size: 12px; color: #8888aa; cursor: pointer; line-height: 1.4;">
-              I have read and agree to the <a href="privacy.html" target="_blank" style="color: #4f6ef7; text-decoration: none; transition: color 0.2s ease;" onmouseover="this.style.color='#6b84ff'" onmouseout="this.style.color='#4f6ef7'">Privacy Policy and Terms of Use</a>
+              I have read and agree to the <a href="#" onclick="saveRegisterFormData(); window.location.href = 'privacy.html'; return false;" style="color: #4f6ef7; text-decoration: none; transition: color 0.2s ease;" onmouseover="this.style.color='#6b84ff'" onmouseout="this.style.color='#4f6ef7'">Privacy Policy and Terms of Use</a>
             </label>
           </div>
           
@@ -723,6 +723,48 @@
         document.getElementById("submitBtn").disabled = !allValid;
       }
 
+      function saveRegisterFormData() {
+        const name = document.getElementById("nameInput").value.trim();
+        const email = document.getElementById("emailInput").value.trim();
+        const age = document.getElementById("ageInput").value.trim();
+        const password = document.getElementById("passwordInput").value;
+        
+        if (name || email || age || password) {
+          sessionStorage.setItem("reg_name", name);
+          sessionStorage.setItem("reg_email", email);
+          sessionStorage.setItem("reg_age", age);
+          sessionStorage.setItem("reg_password", password);
+          sessionStorage.setItem("reg_user_type", userType);
+        }
+      }
+
+      function restoreRegisterFormData() {
+        const name = sessionStorage.getItem("reg_name");
+        const email = sessionStorage.getItem("reg_email");
+        const age = sessionStorage.getItem("reg_age");
+        const password = sessionStorage.getItem("reg_password");
+        const userTypeValue = sessionStorage.getItem("reg_user_type");
+        
+        if (name) document.getElementById("nameInput").value = name;
+        if (email) document.getElementById("emailInput").value = email;
+        if (age) document.getElementById("ageInput").value = age;
+        if (password) {
+          document.getElementById("passwordInput").value = password;
+          document.getElementById("confirmPasswordInput").value = password;
+        }
+        if (userTypeValue) {
+          userType = userTypeValue;
+          syncUserTypeButtons();
+        }
+        
+        // Clear sessionStorage after restoring
+        sessionStorage.removeItem("reg_name");
+        sessionStorage.removeItem("reg_email");
+        sessionStorage.removeItem("reg_age");
+        sessionStorage.removeItem("reg_password");
+        sessionStorage.removeItem("reg_user_type");
+      }
+
        function setMode(nextMode) {
          // Check if switching away from register with unsaved data BEFORE changing mode
          if (nextMode === "login" && mode === "register" && !confirmLeavePage("Your registration data will be lost. Continue?", "register")) {
@@ -782,6 +824,7 @@
          } else {
            document.getElementById("emailInput").value = "";
            document.getElementById("passwordInput").value = "";
+            restoreRegisterFormData();
          }
          
          checkFormValidity();
@@ -991,4 +1034,5 @@
     </script>
   </body>
 </html>
+
 
