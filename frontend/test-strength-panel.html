@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strength Panel Test</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      padding: 20px;
+    }
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 20px;
+    }
+    .test-panel {
+      flex: 1;
+      border: 2px dashed var(--border);
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .test-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--elevated);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    button:hover {
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-panel">
+      <h2>Strength Panel Preview</h2>
+      <div class="test-buttons">
+        <button onclick="testExpandedView()">Test Expanded View</button>
+        <button onclick="testCollapsedView()">Test Collapsed View</button>
+        <button onclick="togglePanelCollapse()">Toggle Panel Collapse</button>
+        <button onclick="testPinTooltip()">Test Pin Tooltip</button>
+      </div>
+      
+      <!-- Copy of strength panel from index.html -->
+      <div style="display: flex; gap: 20px; border: 1px solid var(--border); padding: 20px; border-radius: 8px;">
+        <div style="flex: 1;">
+          <h3>Chat Area (flex: 1)</h3>
+          <p>This would be the chat content</p>
+        </div>
+        
+        <aside class="strength-panel" id="strengthPanel" style="width: 260px;">
+          <div class="strength-resize-handle"></div>
+          
+          <!-- Expanded View -->
+          <div class="strength-content" id="strengthContent">
+            <div class="strength-header">
+              <button class="strength-toggle-btn" id="strengthToggleBtn" title="Collapse">◀</button>
+              <span>⚖️</span>
+              <h3>Case Strength</h3>
+            </div>
+
+            <div class="strength-empty" id="strengthEmpty">
+              <p>Submit your problem to see case analysis</p>
+            </div>
+
+            <div class="strength-results hidden" id="strengthResults">
+              <div class="score-display" id="scoreDisplay"></div>
+              
+              <div class="strength-bar-wrap">
+                <div class="strength-bar" id="strengthBar">
+                  <div class="bar-red" id="barRed"></div>
+                  <div class="bar-green" id="barGreen"></div>
+                </div>
+                <div class="bar-labels">
+                  <span style="color: #ef4444">Weak</span>
+                  <span style="color: #22c55e">Strong</span>
+                </div>
+              </div>
+
+              <div class="panel-buttons">
+                <button class="panel-btn btn-green" onclick="togglePoints('positive')">
+                  ✦ Strong Claims
+                </button>
+                <button class="panel-btn btn-red" onclick="togglePoints('negative')">
+                  ⚠ Weak Points
+                </button>
+              </div>
+
+              <div class="points-box" id="positivePoints"></div>
+              <div class="points-box" id="negativePoints"></div>
+            </div>
+          </div>
+
+          <!-- Collapsed View -->
+          <div class="strength-collapsed hidden" id="strengthCollapsed">
+            <button class="strength-toggle-btn2" id="strengthToggleBtn2" title="Expand">▶</button>
+            <button class="strength-mini-btn" id="miniStrongBtn" data-type="positive">✦</button>
+            <button class="strength-mini-btn" id="miniWeakBtn" data-type="negative">⚠</button>
+            <div class="strength-mini-score" id="miniScore">--</div>
+            <div class="strength-mini-bar" id="miniBar">
+              <div class="mini-red" id="miniRed"></div>
+              <div class="mini-green" id="miniGreen"></div>
+            </div>
+          </div>
+
+          <!-- Tooltip -->
+          <div class="strength-tooltip hidden" id="strengthTooltip">
+            <h4 id="tooltipTitle"></h4>
+            <ul id="tooltipList"></ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Copy test functions from main app
+    let panelCollapsed = false;
+    let panelWidth = 260;
+    let pinnedType = null;
+    let currentScore = null;
+    let currentPositives = [];
+    let currentNegatives = [];
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateStrengthPanel(score, positives, negatives) {
+      currentScore = score;
+      currentPositives = positives;
+      currentNegatives = negatives;
+
+      document.getElementById("strengthEmpty").classList.add("hidden");
+      document.getElementById("strengthResults").classList.remove("hidden");
+
+      const color = score >= 65 ? "#059669" : score >= 40 ? "#f59e0b" : "#ef4444";
+      document.getElementById("scoreDisplay").innerHTML =
+        `<span style="color:${color}">${score}%</span><br>
+         <span style="font-size:13px;font-weight:500;color:#64748b">Case Strength</span>`;
+
+      const barRed = document.getElementById("barRed");
+      const barGreen = document.getElementById("barGreen");
+      if (barRed) barRed.style.width = `${100 - score}%`;
+      if (barGreen) barGreen.style.width = `${score}%`;
+
+      const miniRed = document.getElementById("miniRed");
+      const miniGreen = document.getElementById("miniGreen");
+      if (miniRed) miniRed.style.height = `${100 - score}%`;
+      if (miniGreen) miniGreen.style.height = `${score}%`;
+      
+      const miniScore = document.getElementById("miniScore");
+      if (miniScore) miniScore.textContent = score + "%";
+
+      const posBox = document.getElementById("positivePoints");
+      const negBox = document.getElementById("negativePoints");
+
+      posBox.className = "points-box green-box";
+      posBox.innerHTML = "<ul>" + positives.map((p) => `<li>✦ ${escapeHtml(p)}</li>`).join("") + "</ul>";
+
+      negBox.className = "points-box red-box";
+      negBox.innerHTML = "<ul>" + negatives.map((n) => `<li>⚠ ${escapeHtml(n)}</li>`).join("") + "</ul>";
+    }
+
+    function togglePoints(type) {
+      const posBox = document.getElementById("positivePoints");
+      const negBox = document.getElementById("negativePoints");
+
+      if (type === "positive") {
+        posBox.classList.toggle("hidden");
+      } else {
+        negBox.classList.toggle("hidden");
+      }
+    }
+
+    function testExpandedView() {
+      const score = 72;
+      const positives = ["Strong evidence of contract breach", "Clear documentation of damages"];
+      const negatives = ["Long time since incident", "Witness availability unclear"];
+      updateStrengthPanel(score, positives, negatives);
+      panelCollapsed = false;
+      updatePanelState();
+      alert("Expanded view loaded with 72% case strength");
+    }
+
+    function testCollapsedView() {
+      panelCollapsed = true;
+      updatePanelState();
+      alert("Panel collapsed to icon strip");
+    }
+
+    function collapsePanelToggle() {
+      panelCollapsed = !panelCollapsed;
+      updatePanelState();
+    }
+
+    function togglePanelCollapse() {
+      collapsePanelToggle();
+    }
+
+    function updatePanelState() {
+      const panel = document.getElementById("strengthPanel");
+      const content = document.getElementById("strengthContent");
+      const collapsed = document.getElementById("strengthCollapsed");
+      const handle = document.querySelector(".strength-resize-handle");
+      const toggleBtn1 = document.getElementById("strengthToggleBtn");
+      const toggleBtn2 = document.getElementById("strengthToggleBtn2");
+
+      if (panelCollapsed) {
+        if (content) content.style.display = "none";
+        if (collapsed) collapsed.style.display = "flex";
+        if (handle) handle.style.display = "none";
+        if (panel) panel.style.width = "60px";
+        if (toggleBtn2) toggleBtn2.textContent = "▶";
+        console.log("Panel collapsed to 60px");
+      } else {
+        if (content) content.style.display = "flex";
+        if (collapsed) collapsed.style.display = "none";
+        if (handle) handle.style.display = "block";
+        if (panel) panel.style.width = panelWidth + "px";
+        if (toggleBtn1) toggleBtn1.textContent = "◀";
+        console.log("Panel expanded to", panelWidth, "px");
+      }
+    }
+
+    function testPinTooltip() {
+      pinnedType = pinnedType === "positive" ? null : "positive";
+      updateIconState();
+      alert("Tooltip pin toggled. pinnedType = " + pinnedType);
+    }
+
+    function updateIconState() {
+      const strongBtn = document.getElementById("miniStrongBtn");
+      const weakBtn = document.getElementById("miniWeakBtn");
+
+      if (strongBtn) strongBtn.classList.toggle("pinned", pinnedType === "positive");
+      if (weakBtn) weakBtn.classList.toggle("pinned", pinnedType === "negative");
+    }
+
+    // Initialize on load
+    window.addEventListener("load", () => {
+      updatePanelState();
+      console.log("Test page loaded");
+    });
+  </script>
+</body>
+</html>

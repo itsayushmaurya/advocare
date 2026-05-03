@@ -155,52 +155,64 @@
 
       <!-- Strength Panel -->
       <aside class="strength-panel" id="strengthPanel">
-        <div class="strength-header">
-          <span>⚖️</span>
-          <h3>Case Strength</h3>
-        </div>
-
-        <!-- Empty state -->
-        <div class="strength-empty" id="strengthEmpty">
-          <p>Submit your problem to see case analysis</p>
-        </div>
-
-        <!-- Results (hidden until first query) -->
-        <div class="strength-results hidden" id="strengthResults">
-          <!-- Score -->
-          <div class="score-display" id="scoreDisplay"></div>
-
-          <!-- Bar -->
-          <div class="strength-bar-wrap">
-            <div class="strength-bar" id="strengthBar">
-              <div class="bar-red" id="barRed"></div>
-              <div class="bar-green" id="barGreen"></div>
-            </div>
-            <div class="bar-labels">
-              <span style="color: #ef4444">Weak</span>
-              <span style="color: #22c55e">Strong</span>
-            </div>
+        <div class="strength-resize-handle"></div>
+        
+        <!-- Expanded View -->
+        <div class="strength-content" id="strengthContent">
+          <div class="strength-header">
+            <button class="strength-toggle-btn" id="strengthToggleBtn" title="Collapse">◀</button>
+            <span>⚖️</span>
+            <h3>Case Strength</h3>
           </div>
 
-          <!-- Buttons -->
-          <div class="panel-buttons">
-            <button
-              class="panel-btn btn-green"
-              onclick="togglePoints('positive')"
-            >
-              ✦ Strong Claims
-            </button>
-            <button
-              class="panel-btn btn-red"
-              onclick="togglePoints('negative')"
-            >
-              ⚠ Weak Points
-            </button>
+          <div class="strength-empty" id="strengthEmpty">
+            <p>Submit your problem to see case analysis</p>
           </div>
 
-          <!-- Points reveal -->
-          <div class="points-box" id="positivePoints"></div>
-          <div class="points-box" id="negativePoints"></div>
+          <div class="strength-results hidden" id="strengthResults">
+            <div class="score-display" id="scoreDisplay"></div>
+            
+            <div class="strength-bar-wrap">
+              <div class="strength-bar" id="strengthBar">
+                <div class="bar-red" id="barRed"></div>
+                <div class="bar-green" id="barGreen"></div>
+              </div>
+              <div class="bar-labels">
+                <span style="color: #ef4444">Weak</span>
+                <span style="color: #22c55e">Strong</span>
+              </div>
+            </div>
+
+            <div class="panel-buttons">
+              <button class="panel-btn btn-green" onclick="togglePoints('positive')">
+                ✦ Strong Claims
+              </button>
+              <button class="panel-btn btn-red" onclick="togglePoints('negative')">
+                ⚠ Weak Points
+              </button>
+            </div>
+
+            <div class="points-box" id="positivePoints"></div>
+            <div class="points-box" id="negativePoints"></div>
+          </div>
+        </div>
+
+        <!-- Collapsed View -->
+        <div class="strength-collapsed hidden" id="strengthCollapsed">
+          <button class="strength-toggle-btn2" id="strengthToggleBtn2" title="Expand">▶</button>
+          <button class="strength-mini-btn" id="miniStrongBtn" data-type="positive">✦</button>
+          <button class="strength-mini-btn" id="miniWeakBtn" data-type="negative">⚠</button>
+          <div class="strength-mini-score" id="miniScore">--</div>
+          <div class="strength-mini-bar" id="miniBar">
+            <div class="mini-red" id="miniRed"></div>
+            <div class="mini-green" id="miniGreen"></div>
+          </div>
+        </div>
+
+        <!-- Tooltip -->
+        <div class="strength-tooltip hidden" id="strengthTooltip">
+          <h4 id="tooltipTitle"></h4>
+          <ul id="tooltipList"></ul>
         </div>
       </aside>
     </div>

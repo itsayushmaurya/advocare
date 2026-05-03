@@ -1023,15 +1023,206 @@ textarea::placeholder {
 
 /* ── Strength Panel ── */
 .strength-panel {
+  position: relative;
   width: 260px;
   background: var(--surface);
   border-left: 1px solid var(--border);
+  display: flex;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.strength-resize-handle {
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.strength-resize-handle:hover {
+  background: var(--primary);
+}
+
+/* Expanded Content */
+.strength-content {
+  flex: 1;
   padding: 20px 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  flex-shrink: 0;
   overflow-y: auto;
+  min-width: 200px;
+}
+
+/* Collapsed View */
+.strength-collapsed {
+  width: 60px;
+  padding: 12px 0;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.strength-collapsed.hidden {
+  display: none !important;
+}
+
+.strength-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.strength-toggle-btn:hover {
+  background: var(--elevated);
+  border-color: var(--primary);
+}
+
+.strength-toggle-btn2 {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.strength-toggle-btn2:hover {
+  background: var(--elevated);
+  border-color: var(--primary);
+}
+
+.strength-mini-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.strength-mini-btn:first-of-type {
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.strength-mini-btn:last-of-type {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.strength-mini-btn:hover {
+  border-color: var(--primary);
+}
+
+.strength-mini-btn.pinned {
+  transition: all 0.2s ease;
+}
+
+.strength-mini-btn[data-type="positive"].pinned {
+  background: #22c55e;
+  color: white;
+  border-color: #22c55e;
+}
+
+.strength-mini-btn[data-type="negative"].pinned {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.strength-mini-score {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  width: 40px;
+}
+
+.strength-mini-bar {
+  width: 6px;
+  height: 100px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--elevated);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column-reverse;
+  flex-shrink: 0;
+}
+
+.mini-red {
+  background: linear-gradient(180deg, #ef4444, #f87171);
+  width: 100%;
+  transition: height 0.8s ease;
+}
+
+.mini-green {
+  background: linear-gradient(180deg, #34d399, #22c55e);
+  width: 100%;
+  transition: height 0.8s ease;
+}
+
+/* Tooltip */
+.strength-tooltip {
+  position: fixed;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+  color: var(--text);
+  z-index: 1000;
+  max-width: 220px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: slideInRight 0.2s ease;
+}
+
+.strength-tooltip.hidden {
+  display: none !important;
+}
+
+.strength-tooltip h4 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.strength-tooltip ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.strength-tooltip li {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 .strength-header {
@@ -1165,9 +1356,28 @@ textarea::placeholder {
   border-color: rgba(34, 197, 94, 0.3);
   background: rgba(34, 197, 94, 0.1);
 }
+
 .points-box.red-box {
   border-color: rgba(239, 68, 68, 0.3);
   background: rgba(239, 68, 68, 0.1);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-110%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-100%);
+  }
+}
+
+/* Hide panel on small screens */
+@media (max-width: 900px) {
+  .strength-panel {
+    display: none;
+  }
 }
 
 /* Hide panel on small screens */

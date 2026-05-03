@@ -135,6 +135,7 @@ window.addEventListener("load", async () => {
   if (!ensureAuthenticated()) return;
   await loadCurrentUser();
   applySidebarState();
+  initStrengthPanel();
   await renderSidebar();
   await loadLastSession();
   updateReplyToggle();
@@ -698,38 +699,6 @@ function parseResponse(fullText) {
   return { cleanText, score, positives, negatives };
 }
 
-function updateStrengthPanel(score, positives, negatives) {
-  // Show results, hide empty state
-  document.getElementById("strengthEmpty").classList.add("hidden");
-  document.getElementById("strengthResults").classList.remove("hidden");
-
-  // Score color
-  const color = score >= 65 ? "#059669" : score >= 40 ? "#f59e0b" : "#ef4444";
-  document.getElementById("scoreDisplay").innerHTML =
-    `<span style="color:${color}">${score}%</span><br>
-     <span style="font-size:13px;font-weight:500;color:#64748b">Case Strength</span>`;
-
-  // Bar — red on left, green on right
-  document.getElementById("barRed").style.width = `${100 - score}%`;
-  document.getElementById("barGreen").style.width = `${score}%`;
-
-  // Store points for toggle
-  const posBox = document.getElementById("positivePoints");
-  const negBox = document.getElementById("negativePoints");
-
-  posBox.className = "points-box green-box";
-  posBox.innerHTML =
-    "<ul>" +
-    positives.map((p) => `<li>✦ ${escapeHtml(p)}</li>`).join("") +
-    "</ul>";
-
-  negBox.className = "points-box red-box";
-  negBox.innerHTML =
-    "<ul>" +
-    negatives.map((n) => `<li>⚠ ${escapeHtml(n)}</li>`).join("") +
-    "</ul>";
-}
-
 function togglePoints(type) {
   const posBox = document.getElementById("positivePoints");
   const negBox = document.getElementById("negativePoints");
@@ -974,4 +943,204 @@ function logout() {
   currentSessionId = null;
   isLoading = false;
   window.location.href = "auth.html?tab=login";
+}
+
+// ═══════════════════════════════════════════════════════
+// STRENGTH PANEL REDESIGN
+// ═══════════════════════════════════════════════════════
+let panelCollapsed = localStorage.getItem("panelCollapsed") === "true";
+let panelWidth = parseInt(localStorage.getItem("panelWidth")) || 260;
+let pinnedType = null;
+let currentScore = null;
+let currentPositives = [];
+let currentNegatives = [];
+
+function initStrengthPanel() {
+  const panel = document.getElementById("strengthPanel");
+  if (!panel) return;
+
+  const handle = document.querySelector(".strength-resize-handle");
+  const toggleBtn1 = document.getElementById("strengthToggleBtn");
+  const toggleBtn2 = document.getElementById("strengthToggleBtn2");
+  const collapsed = document.getElementById("strengthCollapsed");
+  const miniStrongBtn = document.getElementById("miniStrongBtn");
+  const miniWeakBtn = document.getElementById("miniWeakBtn");
+
+  updatePanelState();
+
+  if (handle) handle.addEventListener("mousedown", startResize);
+  if (toggleBtn1) toggleBtn1.addEventListener("click", collapsePanelToggle);
+  if (toggleBtn2) toggleBtn2.addEventListener("click", collapsePanelToggle);
+  
+  if (miniStrongBtn) {
+    miniStrongBtn.addEventListener("mouseenter", () => hovPin("positive"));
+    miniStrongBtn.addEventListener("mouseleave", () => leavePin("positive"));
+    miniStrongBtn.addEventListener("click", (e) => { e.stopPropagation(); clickPin("positive"); });
+  }
+  
+  if (miniWeakBtn) {
+    miniWeakBtn.addEventListener("mouseenter", () => hovPin("negative"));
+    miniWeakBtn.addEventListener("mouseleave", () => leavePin("negative"));
+    miniWeakBtn.addEventListener("click", (e) => { e.stopPropagation(); clickPin("negative"); });
+  }
+
+  if (collapsed) {
+    collapsed.addEventListener("click", () => {
+      if (panelCollapsed) expandPanel();
+    });
+  }
+}
+
+function startResize(e) {
+  if (panelCollapsed) return;
+  e.preventDefault();
+  const panel = document.getElementById("strengthPanel");
+  const startX = e.clientX;
+  const startW = panel.offsetWidth;
+
+  const doResize = (e) => {
+    let newW = startW + (e.clientX - startX);
+    newW = Math.max(60, Math.min(newW, 400));
+    panel.style.width = newW + "px";
+  };
+
+  const stopResize = () => {
+    document.removeEventListener("mousemove", doResize);
+    document.removeEventListener("mouseup", stopResize);
+    panelWidth = document.getElementById("strengthPanel").offsetWidth;
+    localStorage.setItem("panelWidth", panelWidth);
+  };
+
+  document.addEventListener("mousemove", doResize);
+  document.addEventListener("mouseup", stopResize);
+}
+
+function collapsePanelToggle() {
+  panelCollapsed = !panelCollapsed;
+  localStorage.setItem("panelCollapsed", panelCollapsed);
+  updatePanelState();
+}
+
+function expandPanel() {
+  panelCollapsed = false;
+  localStorage.setItem("panelCollapsed", "false");
+  updatePanelState();
+}
+
+function updatePanelState() {
+  const panel = document.getElementById("strengthPanel");
+  const content = document.getElementById("strengthContent");
+  const collapsed = document.getElementById("strengthCollapsed");
+  const handle = document.querySelector(".strength-resize-handle");
+  const toggleBtn1 = document.getElementById("strengthToggleBtn");
+  const toggleBtn2 = document.getElementById("strengthToggleBtn2");
+
+  if (panelCollapsed) {
+    if (content) content.style.display = "none";
+    if (collapsed) collapsed.style.display = "flex";
+    if (handle) handle.style.display = "none";
+    if (panel) panel.style.width = "60px";
+    if (toggleBtn2) toggleBtn2.textContent = "▶";
+  } else {
+    if (content) content.style.display = "flex";
+    if (collapsed) collapsed.style.display = "none";
+    if (handle) handle.style.display = "block";
+    if (panel) panel.style.width = panelWidth + "px";
+    if (toggleBtn1) toggleBtn1.textContent = "◀";
+  }
+}
+
+function hovPin(type) {
+  if (pinnedType === type) return;
+  showTooltip(type);
+}
+
+function leavePin(type) {
+  if (pinnedType === type) return;
+  hideTooltip();
+}
+
+function clickPin(type) {
+  if (pinnedType === type) {
+    unpinTooltip();
+  } else {
+    pinnedType = type;
+    updateIconState();
+    showTooltip(type);
+  }
+}
+
+function showTooltip(type) {
+  const tooltip = document.getElementById("strengthTooltip");
+  const title = document.getElementById("tooltipTitle");
+  const list = document.getElementById("tooltipList");
+  const btn = type === "positive" ? document.getElementById("miniStrongBtn") : document.getElementById("miniWeakBtn");
+  const items = type === "positive" ? currentPositives : currentNegatives;
+
+  if (!tooltip || !btn) return;
+
+  title.textContent = type === "positive" ? "Strong Claims" : "Weak Points";
+  list.innerHTML = items.map(item => `<li>${escapeHtml(item)}</li>`).join("");
+
+  const rect = btn.getBoundingClientRect();
+  const panelRect = document.getElementById("strengthPanel").getBoundingClientRect();
+  
+  tooltip.style.top = rect.top + "px";
+  tooltip.style.left = (panelRect.left - 12) + "px";
+  tooltip.classList.remove("hidden");
+}
+
+function hideTooltip() {
+  const tooltip = document.getElementById("strengthTooltip");
+  if (tooltip) tooltip.classList.add("hidden");
+}
+
+function unpinTooltip() {
+  pinnedType = null;
+  updateIconState();
+  hideTooltip();
+}
+
+function updateIconState() {
+  const strongBtn = document.getElementById("miniStrongBtn");
+  const weakBtn = document.getElementById("miniWeakBtn");
+
+  if (strongBtn) strongBtn.classList.toggle("pinned", pinnedType === "positive");
+  if (weakBtn) weakBtn.classList.toggle("pinned", pinnedType === "negative");
+}
+
+function updateStrengthPanel(score, positives, negatives) {
+  currentScore = score;
+  currentPositives = positives;
+  currentNegatives = negatives;
+
+  document.getElementById("strengthEmpty").classList.add("hidden");
+  document.getElementById("strengthResults").classList.remove("hidden");
+
+  const color = score >= 65 ? "#059669" : score >= 40 ? "#f59e0b" : "#ef4444";
+  document.getElementById("scoreDisplay").innerHTML =
+    `<span style="color:${color}">${score}%</span><br>
+     <span style="font-size:13px;font-weight:500;color:#64748b">Case Strength</span>`;
+
+  const barRed = document.getElementById("barRed");
+  const barGreen = document.getElementById("barGreen");
+  if (barRed) barRed.style.width = `${100 - score}%`;
+  if (barGreen) barGreen.style.width = `${score}%`;
+
+  const miniRed = document.getElementById("miniRed");
+  const miniGreen = document.getElementById("miniGreen");
+  if (miniRed) miniRed.style.height = `${100 - score}%`;
+  if (miniGreen) miniGreen.style.height = `${score}%`;
+  
+  const miniScore = document.getElementById("miniScore");
+  if (miniScore) miniScore.textContent = score + "%";
+
+  const posBox = document.getElementById("positivePoints");
+  const negBox = document.getElementById("negativePoints");
+
+  posBox.className = "points-box green-box";
+  posBox.innerHTML = "<ul>" + positives.map((p) => `<li>✦ ${escapeHtml(p)}</li>`).join("") + "</ul>";
+
+  negBox.className = "points-box red-box";
+  negBox.innerHTML = "<ul>" + negatives.map((n) => `<li>⚠ ${escapeHtml(n)}</li>`).join("") + "</ul>";
 }
