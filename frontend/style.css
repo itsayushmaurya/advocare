@@ -1057,18 +1057,41 @@ textarea::placeholder {
 
 /* Collapsed View */
 .strength-collapsed {
-  width: 60px;
-  padding: 12px 0;
+  width: 56px;
+  padding: 0;
   display: flex !important;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  overflow-y: auto;
+  justify-content: center;
+  gap: 0;
+  overflow: hidden;
   flex-shrink: 0;
+  background: #111118;
+  border-left: 1px solid #2a2a3a;
+  cursor: pointer;
 }
 
 .strength-collapsed.hidden {
   display: none !important;
+}
+
+.strength-expand-btn {
+  width: 56px;
+  height: 56px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.strength-expand-btn:hover {
+  background: var(--elevated);
+  color: var(--primary);
 }
 
 .strength-toggle-btn {

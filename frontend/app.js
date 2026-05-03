@@ -950,44 +950,33 @@ function logout() {
 // ═══════════════════════════════════════════════════════
 let panelCollapsed = localStorage.getItem("panelCollapsed") === "true";
 let panelWidth = parseInt(localStorage.getItem("panelWidth")) || 260;
-let pinnedType = null;
-let currentScore = null;
-let currentPositives = [];
-let currentNegatives = [];
+
 
 function initStrengthPanel() {
   const panel = document.getElementById("strengthPanel");
   if (!panel) return;
 
   const handle = document.querySelector(".strength-resize-handle");
-  const toggleBtn1 = document.getElementById("strengthToggleBtn");
-  const toggleBtn2 = document.getElementById("strengthToggleBtn2");
+  const toggleBtn = document.getElementById("strengthToggleBtn");
+  const expandBtn = document.getElementById("strengthExpandBtn");
   const collapsed = document.getElementById("strengthCollapsed");
-  const miniStrongBtn = document.getElementById("miniStrongBtn");
-  const miniWeakBtn = document.getElementById("miniWeakBtn");
 
   updatePanelState();
 
-  if (handle) handle.addEventListener("mousedown", startResize);
-  if (toggleBtn1) toggleBtn1.addEventListener("click", collapsePanelToggle);
-  if (toggleBtn2) toggleBtn2.addEventListener("click", collapsePanelToggle);
-  
-  if (miniStrongBtn) {
-    miniStrongBtn.addEventListener("mouseenter", () => hovPin("positive"));
-    miniStrongBtn.addEventListener("mouseleave", () => leavePin("positive"));
-    miniStrongBtn.addEventListener("click", (e) => { e.stopPropagation(); clickPin("positive"); });
+  if (handle) {
+    handle.addEventListener("mousedown", startResize);
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", collapsePanelToggle);
   }
   
-  if (miniWeakBtn) {
-    miniWeakBtn.addEventListener("mouseenter", () => hovPin("negative"));
-    miniWeakBtn.addEventListener("mouseleave", () => leavePin("negative"));
-    miniWeakBtn.addEventListener("click", (e) => { e.stopPropagation(); clickPin("negative"); });
+  if (expandBtn) {
+    expandBtn.addEventListener("click", expandPanel);
   }
 
   if (collapsed) {
-    collapsed.addEventListener("click", () => {
-      if (panelCollapsed) expandPanel();
-    });
+    collapsed.addEventListener("click", expandPanel);
   }
 }
 
@@ -1032,88 +1021,22 @@ function updatePanelState() {
   const content = document.getElementById("strengthContent");
   const collapsed = document.getElementById("strengthCollapsed");
   const handle = document.querySelector(".strength-resize-handle");
-  const toggleBtn1 = document.getElementById("strengthToggleBtn");
-  const toggleBtn2 = document.getElementById("strengthToggleBtn2");
+  const toggleBtn = document.getElementById("strengthToggleBtn");
 
   if (panelCollapsed) {
     if (content) content.style.display = "none";
     if (collapsed) collapsed.style.display = "flex";
     if (handle) handle.style.display = "none";
-    if (panel) panel.style.width = "60px";
-    if (toggleBtn2) toggleBtn2.textContent = "▶";
+    if (panel) panel.style.width = "56px";
   } else {
     if (content) content.style.display = "flex";
     if (collapsed) collapsed.style.display = "none";
     if (handle) handle.style.display = "block";
     if (panel) panel.style.width = panelWidth + "px";
-    if (toggleBtn1) toggleBtn1.textContent = "◀";
   }
-}
-
-function hovPin(type) {
-  if (pinnedType === type) return;
-  showTooltip(type);
-}
-
-function leavePin(type) {
-  if (pinnedType === type) return;
-  hideTooltip();
-}
-
-function clickPin(type) {
-  if (pinnedType === type) {
-    unpinTooltip();
-  } else {
-    pinnedType = type;
-    updateIconState();
-    showTooltip(type);
-  }
-}
-
-function showTooltip(type) {
-  const tooltip = document.getElementById("strengthTooltip");
-  const title = document.getElementById("tooltipTitle");
-  const list = document.getElementById("tooltipList");
-  const btn = type === "positive" ? document.getElementById("miniStrongBtn") : document.getElementById("miniWeakBtn");
-  const items = type === "positive" ? currentPositives : currentNegatives;
-
-  if (!tooltip || !btn) return;
-
-  title.textContent = type === "positive" ? "Strong Claims" : "Weak Points";
-  list.innerHTML = items.map(item => `<li>${escapeHtml(item)}</li>`).join("");
-
-  const rect = btn.getBoundingClientRect();
-  const panelRect = document.getElementById("strengthPanel").getBoundingClientRect();
-  
-  tooltip.style.top = rect.top + "px";
-  tooltip.style.left = (panelRect.left - 12) + "px";
-  tooltip.classList.remove("hidden");
-}
-
-function hideTooltip() {
-  const tooltip = document.getElementById("strengthTooltip");
-  if (tooltip) tooltip.classList.add("hidden");
-}
-
-function unpinTooltip() {
-  pinnedType = null;
-  updateIconState();
-  hideTooltip();
-}
-
-function updateIconState() {
-  const strongBtn = document.getElementById("miniStrongBtn");
-  const weakBtn = document.getElementById("miniWeakBtn");
-
-  if (strongBtn) strongBtn.classList.toggle("pinned", pinnedType === "positive");
-  if (weakBtn) weakBtn.classList.toggle("pinned", pinnedType === "negative");
 }
 
 function updateStrengthPanel(score, positives, negatives) {
-  currentScore = score;
-  currentPositives = positives;
-  currentNegatives = negatives;
-
   document.getElementById("strengthEmpty").classList.add("hidden");
   document.getElementById("strengthResults").classList.remove("hidden");
 
@@ -1126,14 +1049,6 @@ function updateStrengthPanel(score, positives, negatives) {
   const barGreen = document.getElementById("barGreen");
   if (barRed) barRed.style.width = `${100 - score}%`;
   if (barGreen) barGreen.style.width = `${score}%`;
-
-  const miniRed = document.getElementById("miniRed");
-  const miniGreen = document.getElementById("miniGreen");
-  if (miniRed) miniRed.style.height = `${100 - score}%`;
-  if (miniGreen) miniGreen.style.height = `${score}%`;
-  
-  const miniScore = document.getElementById("miniScore");
-  if (miniScore) miniScore.textContent = score + "%";
 
   const posBox = document.getElementById("positivePoints");
   const negBox = document.getElementById("negativePoints");
