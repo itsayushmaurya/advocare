@@ -20,9 +20,7 @@
             <p>Free AI Legal Guidance for Every Indian</p>
           </div>
         </div>
-        <button class="contact-home-btn" type="button" onclick="window.location.href = 'index.html';">
-          Back Home
-        </button>
+        <button class="back-btn" type="button" onclick="goBack();">←</button>
       </div>
     </header>
 
@@ -115,6 +113,14 @@
     </main>
 
     <script>
+      function goBack() {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = "index.html";
+        }
+      }
+
       document.getElementById("contactForm").addEventListener("submit", function (event) {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
