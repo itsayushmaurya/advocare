@@ -40,7 +40,7 @@
               <span class="contact-info-icon">⌂</span>
               <div>
                 <h3>Visit us</h3>
-                <p>42 Civic Centre Road, New Delhi, India 110001</p>
+                <p>Ludhiana, Punjab, India</p>
               </div>
             </div>
 
@@ -113,6 +113,8 @@
     </main>
 
     <script>
+      let hasUnsavedChanges = false;
+
       function goBack() {
         if (window.history.length > 1) {
           window.history.back();
@@ -121,12 +123,44 @@
         }
       }
 
-      document.getElementById("contactForm").addEventListener("submit", function (event) {
+      function isFormDirty() {
+        const form = document.getElementById("contactForm");
+        const inputs = form.querySelectorAll("input, textarea");
+        for (let input of inputs) {
+          if (input.value.trim() !== "") {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      function updateFormDirtyState() {
+        hasUnsavedChanges = isFormDirty();
+      }
+
+      const form = document.getElementById("contactForm");
+      const inputs = form.querySelectorAll("input, textarea");
+
+      inputs.forEach((input) => {
+        input.addEventListener("input", updateFormDirtyState);
+        input.addEventListener("change", updateFormDirtyState);
+      });
+
+      window.addEventListener("beforeunload", (event) => {
+        if (hasUnsavedChanges) {
+          event.preventDefault();
+          event.returnValue = "";
+          return "";
+        }
+      });
+
+      form.addEventListener("submit", function (event) {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const data = Object.fromEntries(formData.entries());
         data.privacyAgreement = formData.get("privacyAgreement") === "on";
         console.log("Contact form submitted:", data);
+        hasUnsavedChanges = false;
       });
     </script>
   </body>
