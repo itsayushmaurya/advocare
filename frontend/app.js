@@ -1021,16 +1021,15 @@ function updatePanelState() {
   const content = document.getElementById("strengthContent");
   const collapsed = document.getElementById("strengthCollapsed");
   const handle = document.querySelector(".strength-resize-handle");
-  const toggleBtn = document.getElementById("strengthToggleBtn");
 
   if (panelCollapsed) {
-    if (content) content.style.display = "none";
-    if (collapsed) collapsed.style.display = "flex";
+    content.classList.add("hidden");
+    collapsed.classList.remove("hidden");
     if (handle) handle.style.display = "none";
     if (panel) panel.style.width = "56px";
   } else {
-    if (content) content.style.display = "flex";
-    if (collapsed) collapsed.style.display = "none";
+    content.classList.remove("hidden");
+    collapsed.classList.add("hidden");
     if (handle) handle.style.display = "block";
     if (panel) panel.style.width = panelWidth + "px";
   }
