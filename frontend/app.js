@@ -381,12 +381,6 @@ document.getElementById("userInput").addEventListener("input", function () {
     count > 1900 ? "#ef4444" : "#64748b";
 });
 
-function setExample(text) {
-  document.getElementById("userInput").value = text;
-  document.getElementById("charCount").textContent = `${text.length} / 2000`;
-  document.getElementById("userInput").focus();
-}
-
 function handleKey(e) {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();

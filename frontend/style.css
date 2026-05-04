@@ -492,50 +492,6 @@ body {
   background: var(--bg);
 }
 
-/* ── Example Chips ── */
-.examples-section {
-  flex-shrink: 0;
-  padding: 12px 20px 8px 20px;
-  background: var(--bg);
-}
-
-.examples-label {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-behavior: smooth;
-  padding-bottom: 2px;
-}
-
-.chip {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 8px 14px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--text);
-  font-family: "Inter", sans-serif;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.chip:hover {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(79, 110, 247, 0.3);
-}
-
 /* ── Chat Container ── */
 .chat-container {
   background: var(--bg);
@@ -942,10 +898,6 @@ textarea::placeholder {
   .main {
     padding: 0;
     flex-direction: column;
-  }
-
-  .examples-section {
-    padding: 8px 12px 4px 12px;
   }
 
   .chat-container {
