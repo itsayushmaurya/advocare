@@ -136,7 +136,9 @@ function setHeroLayout(enabled) {
 function syncHeroLayoutWithChat() {
   const chatWindow = document.getElementById("chatWindow");
   if (!chatWindow) return;
-  setHeroLayout(chatWindow.children.length === 0);
+  // Keep hero mode until the user sends their first message in the current session.
+  const hasUserMessage = chatWindow.querySelector(".user-message") !== null;
+  setHeroLayout(!hasUserMessage);
 }
 
 async function loadCurrentUser() {

@@ -10,6 +10,12 @@
   --primary: #4f6ef7;
   --primary-dark: #6b84ff;
   --bg: #0a0a0f;
+  --bg-gradient-start: #0b0b14;
+  --bg-gradient-end: #07080f;
+  --bg-glow-blue: rgba(79, 110, 247, 0.16);
+  --bg-glow-blue-fade: rgba(79, 110, 247, 0);
+  --bg-glow-purple: rgba(124, 58, 237, 0.12);
+  --bg-glow-purple-fade: rgba(124, 58, 237, 0);
   --surface: #111118;
   --elevated: #1a1a24;
   --border: #2a2a3a;
@@ -55,7 +61,10 @@ html {
 
 body {
   font-family: "Inter", sans-serif;
-  background: var(--bg);
+  background:
+    radial-gradient(56% 46% at 50% 46%, var(--bg-glow-blue) 0%, var(--bg-glow-blue-fade) 72%),
+    radial-gradient(38% 30% at 20% 16%, var(--bg-glow-purple) 0%, var(--bg-glow-purple-fade) 76%),
+    linear-gradient(160deg, var(--bg-gradient-start) 0%, var(--bg) 50%, var(--bg-gradient-end) 100%);
   color: var(--text);
   height: 100vh;
   overflow: hidden;
@@ -501,13 +510,13 @@ body {
   gap: 0;
   padding: 0;
   overflow: hidden;
-  background: var(--bg);
+  background: transparent;
   min-height: 0;
 }
 
 /* ── Chat Container ── */
 .chat-container {
-  background: var(--bg);
+  background: transparent;
   border-radius: 0;
   border: none;
   box-shadow: none;
@@ -537,8 +546,8 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 28px;
   width: min(760px, 100%);
 }
 
@@ -547,17 +556,17 @@ body {
 }
 
 .chat-hero-greeting {
-  font-size: 34px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.chat-hero-subtitle {
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1.3;
   font-weight: 500;
   color: var(--text-secondary);
+}
+
+.chat-hero-subtitle {
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .chat-window {
@@ -567,7 +576,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: var(--bg);
+  background: transparent;
 }
 
 /* ── Messages ── */
@@ -747,7 +756,7 @@ body {
 .input-area {
   border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 14px 16px 54px 16px;
+  padding: 14px 16px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -763,7 +772,7 @@ textarea {
   width: 100%;
   border: none;
   border-radius: 12px;
-  padding: 2px 170px 8px 0;
+  padding: 4px 110px 24px 0;
   font-family: "Inter", sans-serif;
   font-size: 14px;
   resize: none;
@@ -794,42 +803,50 @@ textarea::placeholder {
 
 .input-actions {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 10px;
+  right: 12px;
+  top: 50%;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  padding: 0 12px;
+  transform: translateY(-50%);
 }
 
 .input-actions-right {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
+}
+
+.input-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .settings-menu-btn {
   background: var(--elevated);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  font-size: 16px;
   color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-family: "Inter", sans-serif;
 }
 
 .settings-menu-btn:hover {
   background: var(--elevated);
   border-color: var(--primary);
   color: var(--primary);
+  transform: scale(1.05);
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
 /* ── Settings Menu Popup ── */
@@ -920,32 +937,41 @@ textarea::placeholder {
 .char-count {
   font-size: 12px;
   color: var(--text-secondary);
+  position: absolute;
+  left: 16px;
+  bottom: 10px;
+  line-height: 1;
 }
 
 .send-btn {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: white;
-  border: none;
-  border-radius: 12px;
-  height: 40px;
-  padding: 0 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: "Inter", sans-serif;
+  border: 1px solid var(--primary-dark);
+  box-shadow: 0 10px 22px rgba(79, 110, 247, 0.25);
 }
 
 .send-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 110, 247, 0.4);
-  background: var(--primary-dark);
+  transform: scale(1.05);
+  box-shadow: 0 0 0 1px var(--primary-dark), 0 12px 28px rgba(79, 110, 247, 0.38);
 }
 
 .send-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.65;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ── Info Bar ── */
@@ -985,16 +1011,16 @@ textarea::placeholder {
   }
 
   .chat-hero-greeting {
-    font-size: 28px;
+    font-size: 18px;
   }
 
   .chat-hero-subtitle {
-    font-size: 16px;
+    font-size: 24px;
   }
 
   .input-area {
     width: min(760px, calc(100% - 20px));
-    padding: 12px 12px 50px 12px;
+    padding: 12px;
     gap: 6px;
     margin: 0 auto;
   }
@@ -1003,12 +1029,11 @@ textarea::placeholder {
     font-size: 16px;
     max-height: 180px;
     min-height: 64px;
-    padding-right: 110px;
+    padding: 4px 96px 22px 0;
   }
 
   .input-actions {
-    bottom: 8px;
-    padding: 0 10px;
+    right: 10px;
   }
 
   .input-actions-right {
@@ -1018,18 +1043,22 @@ textarea::placeholder {
 
   .char-count {
     font-size: 11px;
+    left: 12px;
+    bottom: 9px;
   }
 
-  .settings-menu-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
+  .input-icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .btn-icon {
+    width: 18px;
+    height: 18px;
   }
 
   .send-btn {
-    padding: 0 12px;
-    height: 36px;
-    font-size: 13px;
+    border-radius: 999px;
   }
 
   .settings-menu {
