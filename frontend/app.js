@@ -110,6 +110,33 @@ function updateProfileUI(user) {
   if (profileAvatar) profileAvatar.textContent = getInitials(user.name);
   if (profileName) profileName.textContent = user.name;
   if (profileEmail) profileEmail.textContent = user.email;
+  updateHeroGreeting(user.name);
+}
+
+function updateHeroGreeting(name = "") {
+  const greetingEl = document.getElementById("chatHeroGreeting");
+  if (!greetingEl) return;
+  const fallbackName =
+    document.getElementById("profileName")?.textContent ||
+    localStorage.getItem("advocare_user_name") ||
+    "";
+  const firstName = (name || fallbackName || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)[0];
+  greetingEl.textContent = firstName ? `Hello, ${firstName}` : "Hello";
+}
+
+function setHeroLayout(enabled) {
+  const chatContainer = document.getElementById("chatContainer");
+  if (!chatContainer) return;
+  chatContainer.classList.toggle("hero-layout", enabled);
+}
+
+function syncHeroLayoutWithChat() {
+  const chatWindow = document.getElementById("chatWindow");
+  if (!chatWindow) return;
+  setHeroLayout(chatWindow.children.length === 0);
 }
 
 async function loadCurrentUser() {
@@ -133,6 +160,7 @@ async function loadCurrentUser() {
 // ─── On Page Load ───────────────────────────────────────────
 window.addEventListener("load", async () => {
   if (!ensureAuthenticated()) return;
+  updateHeroGreeting();
   await loadCurrentUser();
   applySidebarState();
   initStrengthPanel();
@@ -257,7 +285,7 @@ function startNewSession() {
   currentSessionId = null;
   conversationHistory = [];
   clearChatWindow();
-  showWelcomeMessage();
+  syncHeroLayoutWithChat();
 }
 
 async function loadSession(sessionId) {
@@ -270,7 +298,6 @@ async function loadSession(sessionId) {
   currentSessionId = sessionId;
   conversationHistory = [];
   clearChatWindow();
-  showWelcomeMessage();
 
   let hasStrength = false;
   messages.forEach((msg) => {
@@ -296,6 +323,7 @@ async function loadSession(sessionId) {
     document.getElementById("strengthResults").classList.add("hidden");
   }
 
+  syncHeroLayoutWithChat();
   await renderSidebar();
 }
 
@@ -356,6 +384,7 @@ function formatDate(ts) {
 // ─── Chat UI ────────────────────────────────────────────────
 function clearChatWindow() {
   document.getElementById("chatWindow").innerHTML = "";
+  syncHeroLayoutWithChat();
 }
 
 function showWelcomeMessage() {
@@ -484,6 +513,7 @@ function appendUserMessage(text, save = true) {
     <div class="bot-avatar" style="background:#f59e0b;">👤</div>
   `;
   chatWindow.appendChild(div);
+  syncHeroLayoutWithChat();
   scrollToBottom();
 }
 
@@ -538,6 +568,7 @@ function appendBotMessage(text, category = "", urgency = "normal", save = true) 
     </div>
   `;
   chatWindow.appendChild(div);
+  syncHeroLayoutWithChat();
   if (shouldAutoScroll) scrollToBottom();
 }
 
