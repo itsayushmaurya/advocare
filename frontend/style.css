@@ -269,19 +269,23 @@ body {
   width: 260px;
   background: var(--surface);
   color: var(--text);
-  padding: 16px;
+  padding: 18px 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   overflow-y: auto;
   flex-shrink: 0;
   transition: width 0.3s ease, padding 0.3s ease;
+  border: 1px solid var(--border);
   border-right: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .app-layout.sidebar-collapsed .sidebar {
   width: 70px;
   padding: 12px 8px;
+  border-radius: 14px;
 }
 
 .sidebar-header {
@@ -346,14 +350,15 @@ body {
   background: var(--primary);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 12px;
+  padding: 12px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
   transition: all 0.2s;
   font-family: "Inter", sans-serif;
+  box-shadow: 0 6px 14px rgba(79, 110, 247, 0.25);
 }
 
 .app-layout.sidebar-collapsed .new-chat-btn {
@@ -370,7 +375,8 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-secondary);
-  padding: 0 4px;
+  padding: 2px 6px;
+  margin-top: 2px;
 }
 
 .app-layout.sidebar-collapsed .sidebar-label {
@@ -380,7 +386,7 @@ body {
 .session-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .app-layout.sidebar-collapsed .session-list {
@@ -414,18 +420,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   gap: 8px;
+  border: 1px solid transparent;
+  background: transparent;
 }
 
 .session-item:hover {
   background: var(--elevated);
+  border-color: var(--border);
 }
 .session-item.active {
   background: var(--primary);
+  border-color: transparent;
 }
 
 .session-info {
@@ -442,6 +452,8 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text);
+  max-width: 100%;
+  font-weight: 500;
 }
 
 .session-date {
