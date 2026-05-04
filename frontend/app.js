@@ -408,6 +408,9 @@ document.getElementById("userInput").addEventListener("input", function () {
   document.getElementById("charCount").textContent = `${count} / 2000`;
   document.getElementById("charCount").style.color =
     count > 1900 ? "#ef4444" : "#64748b";
+  this.style.height = "auto";
+  this.style.height = `${Math.min(this.scrollHeight, 220)}px`;
+  this.style.overflowY = this.scrollHeight > 220 ? "auto" : "hidden";
 });
 
 function handleKey(e) {
@@ -432,7 +435,10 @@ async function submitQuery() {
 
   setLoading(true);
   appendUserMessage(input);
-  document.getElementById("userInput").value = "";
+  const inputEl = document.getElementById("userInput");
+  inputEl.value = "";
+  inputEl.style.height = "";
+  inputEl.style.overflowY = "hidden";
   document.getElementById("charCount").textContent = "0 / 2000";
 
   const typingId = showTyping();
