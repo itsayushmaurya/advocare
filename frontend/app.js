@@ -912,10 +912,20 @@ function toggleSidebar() {
   sidebar?.classList.toggle("active");
 }
 
+function closeLanguageSubmenu() {
+  const languageMenu = document.getElementById("profileLanguageMenu");
+  if (!languageMenu) return;
+  languageMenu.classList.remove("open");
+  languageMenu.setAttribute("aria-expanded", "false");
+}
+
 function toggleProfileMenu(event) {
   event.stopPropagation();
   const item = event.target.closest(".profile-menu-item");
   if (item) {
+    if (item.id === "profileLanguageMenu") {
+      return;
+    }
     const text = item.textContent.trim();
     if (text === "Privacy Policy") {
       window.location.href = "privacy.html";
@@ -931,7 +941,21 @@ function toggleProfileMenu(event) {
     }
   }
   const dropdown = document.getElementById("profileDropdown");
-  dropdown?.classList.toggle("hidden");
+  if (!dropdown) return;
+  const nextHidden = !dropdown.classList.contains("hidden");
+  dropdown.classList.toggle("hidden");
+  if (nextHidden) {
+    closeLanguageSubmenu();
+  }
+}
+
+function toggleLanguageSubmenu(event) {
+  event.stopPropagation();
+  const languageMenu = document.getElementById("profileLanguageMenu");
+  if (!languageMenu) return;
+  const willOpen = !languageMenu.classList.contains("open");
+  languageMenu.classList.toggle("open");
+  languageMenu.setAttribute("aria-expanded", willOpen ? "true" : "false");
 }
 
 function openProfilePage(event) {
@@ -942,6 +966,7 @@ function openProfilePage(event) {
 function selectProfileLanguage(event, lang) {
   event.stopPropagation();
   setLanguage(lang);
+  closeLanguageSubmenu();
   document.getElementById("profileDropdown")?.classList.add("hidden");
 }
 
@@ -967,6 +992,7 @@ document.addEventListener("click", function (event) {
   }
   if (!profileContainer.contains(event.target)) {
     dropdown.classList.add("hidden");
+    closeLanguageSubmenu();
   }
 });
 

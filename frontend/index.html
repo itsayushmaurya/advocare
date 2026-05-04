@@ -12,22 +12,40 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </head>
   <body>
-    <header class="header">
-      <div class="header-inner">
-        <div class="logo" onclick="window.location.href = 'home.html';" style="cursor: pointer;">
-          <span class="logo-icon">⚖️</span>
-          <div>
-            <h1>Advocare</h1>
-            <p>Free AI Legal Guidance for Every Indian</p>
+    <div class="app-layout" id="appLayout">
+      <button class="hamburger-menu" id="hamburger" onclick="toggleSidebar()">☰</button>
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+          <div class="sidebar-brand" onclick="window.location.href = 'home.html';" title="Go to home">
+            <span class="sidebar-brand-icon">⚖️</span>
+            <span class="sidebar-brand-text">Advocare</span>
           </div>
+          <div class="sidebar-header">
+            <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebarCollapse()" title="Collapse sidebar">
+              ◀
+            </button>
+            <button class="sidebar-new-chat-icon" onclick="startNewSession()" title="New Chat">
+              +
+            </button>
+          </div>
+          <button class="new-chat-btn" onclick="startNewSession()">
+            + New Chat
+          </button>
         </div>
-        <div class="profile-container" id="profileContainer" onclick="toggleProfileMenu(event)">
+        <div class="sidebar-middle">
+          <p class="sidebar-label">Previous Chats</p>
+          <div id="sessionList" class="session-list"></div>
+        </div>
+        <div class="profile-container sidebar-profile" id="profileContainer" onclick="toggleProfileMenu(event)">
           <div class="avatar" id="profileAvatar">--</div>
-          <span class="username" id="profileName">Loading...</span>
+          <div class="sidebar-profile-meta">
+            <span class="username" id="profileName">Loading...</span>
+            <span class="sidebar-profile-email" id="profileEmail">Loading...</span>
+          </div>
           <div class="profile-dropdown hidden" id="profileDropdown">
-            <div class="profile-email" id="profileEmail">Loading...</div>
+            <div class="profile-email">Account</div>
             <button class="profile-menu-item" type="button" onclick="openProfilePage(event)">Profile</button>
-            <div class="profile-menu-item profile-menu-submenu">
+            <div class="profile-menu-item profile-menu-submenu" id="profileLanguageMenu" onclick="toggleLanguageSubmenu(event)" role="button" tabindex="0" aria-expanded="false">
               <span>Language</span>
               <span class="submenu-arrow">›</span>
               <div class="language-submenu">
@@ -40,25 +58,6 @@
             <button class="profile-menu-item logout-item" type="button">Logout</button>
           </div>
         </div>
-      </div>
-    </header>
-
-    <div class="app-layout" id="appLayout">
-      <button class="hamburger-menu" id="hamburger" onclick="toggleSidebar()">☰</button>
-      <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebarCollapse()" title="Collapse sidebar">
-            ◀
-          </button>
-          <button class="sidebar-new-chat-icon" onclick="startNewSession()" title="New Chat">
-            +
-          </button>
-        </div>
-        <button class="new-chat-btn" onclick="startNewSession()">
-          + New Chat
-        </button>
-        <p class="sidebar-label">Previous Chats</p>
-        <div id="sessionList" class="session-list"></div>
       </aside>
 
       <main class="main">
