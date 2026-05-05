@@ -4,6 +4,8 @@ let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
 let isSidebarCollapsed = false;
+let sidebarView = "recents";
+let sidebarSearchQuery = "";
 let currentUserId = null;
 let replyMode = normalizeReplyMode(localStorage.getItem("replyMode")); // 'quick' or 'detail'
 let language = normalizeLanguage(localStorage.getItem("language")); // 'en' or 'hi'
@@ -13,7 +15,11 @@ const UI_TEXT = {
       "Describe your legal problem here... (e.g. 'My boss fired me without notice')",
     sendButton: "Get Legal Help →",
     loadingButton: "Analyzing...",
-    newChat: "+ New Chat",
+    newChat: "New Chat",
+    searchChats: "Search Chats",
+    pinnedChats: "Pinned Chats",
+    recents: "Recents",
+    previousChats: "Previous Chats",
     settings: "Settings",
     outputType: "Output Type",
     quick: "Quick",
@@ -30,7 +36,11 @@ const UI_TEXT = {
       "अपनी कानूनी समस्या यहां लिखें... (जैसे 'मेरे बॉस ने मुझे बिना नोटिस के नौकरी से निकाल दिया')",
     sendButton: "कानूनी मदद पाएं →",
     loadingButton: "विश्लेषण हो रहा है...",
-    newChat: "+ नई चैट",
+    newChat: "नई चैट",
+    searchChats: "चैट खोजें",
+    pinnedChats: "पिन की गई चैट",
+    recents: "हाल की चैट",
+    previousChats: "पिछली चैट्स",
     settings: "सेटिंग्स",
     outputType: "उत्तर का प्रकार",
     quick: "संक्षिप्त",
@@ -162,6 +172,8 @@ async function loadCurrentUser() {
 // ─── On Page Load ───────────────────────────────────────────
 window.addEventListener("load", async () => {
   if (!ensureAuthenticated()) return;
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+  setSidebarActiveNav("navRecents");
   updateHeroGreeting();
   await loadCurrentUser();
   applySidebarState();
@@ -187,6 +199,54 @@ function applySidebarState() {
 function toggleSidebarCollapse() {
   isSidebarCollapsed = !isSidebarCollapsed;
   applySidebarState();
+}
+
+function setSidebarActiveNav(navId) {
+  document.querySelectorAll(".sidebar-nav-item").forEach((btn) => {
+    btn.classList.toggle("active", btn.id === navId);
+  });
+}
+
+function handleSidebarNav(action) {
+  if (action === "new") {
+    setSidebarActiveNav("navNewChat");
+    startNewSession();
+    return;
+  }
+
+  if (action === "search") {
+    sidebarView = "search";
+    setSidebarActiveNav("navSearch");
+    document.getElementById("sidebarSearchWrap")?.classList.remove("hidden");
+    document.getElementById("sidebarSearchInput")?.focus();
+    renderSidebar();
+    return;
+  }
+
+  if (action === "pinned") {
+    sidebarView = "pinned";
+    sidebarSearchQuery = "";
+    const searchInput = document.getElementById("sidebarSearchInput");
+    if (searchInput) searchInput.value = "";
+    document.getElementById("sidebarSearchWrap")?.classList.add("hidden");
+    setSidebarActiveNav("navPinned");
+    renderSidebar();
+    return;
+  }
+
+  sidebarView = "recents";
+  sidebarSearchQuery = "";
+  const searchInput = document.getElementById("sidebarSearchInput");
+  if (searchInput) searchInput.value = "";
+  document.getElementById("sidebarSearchWrap")?.classList.add("hidden");
+  setSidebarActiveNav("navRecents");
+  renderSidebar();
+}
+
+function handleSidebarSearchInput() {
+  const input = document.getElementById("sidebarSearchInput");
+  sidebarSearchQuery = (input?.value || "").trim().toLowerCase();
+  renderSidebar();
 }
 
 function setReplyMode(mode) {
@@ -227,7 +287,12 @@ function applyLanguageText() {
   const userInput = document.getElementById("userInput");
   const btnText = document.getElementById("btnText");
   const btnLoader = document.getElementById("btnLoader");
-  const newChatBtn = document.querySelector(".new-chat-btn");
+  const newChatLabel = document.getElementById("navNewChatLabel");
+  const searchChatsLabel = document.getElementById("navSearchLabel");
+  const pinnedChatsLabel = document.getElementById("navPinnedLabel");
+  const recentsLabel = document.getElementById("navRecentsLabel");
+  const previousChatsLabel = document.getElementById("sidebarListLabel");
+  const searchInput = document.getElementById("sidebarSearchInput");
   const settingsHeader = document.querySelector(".settings-menu-header");
   const settingsLabels = document.querySelectorAll(".settings-label");
   const quickToggle = document.getElementById("quickToggle");
@@ -237,7 +302,12 @@ function applyLanguageText() {
   if (userInput) userInput.placeholder = text.inputPlaceholder;
   if (btnText) btnText.textContent = text.sendButton;
   if (btnLoader) btnLoader.textContent = text.loadingButton;
-  if (newChatBtn) newChatBtn.textContent = text.newChat;
+  if (newChatLabel) newChatLabel.textContent = text.newChat;
+  if (searchChatsLabel) searchChatsLabel.textContent = text.searchChats;
+  if (pinnedChatsLabel) pinnedChatsLabel.textContent = text.pinnedChats;
+  if (recentsLabel) recentsLabel.textContent = text.recents;
+  if (previousChatsLabel) previousChatsLabel.textContent = text.previousChats;
+  if (searchInput) searchInput.placeholder = text.searchChats;
   if (settingsHeader) settingsHeader.textContent = text.settings;
   if (settingsLabels[0]) settingsLabels[0].textContent = text.outputType;
   if (settingsLabels[1]) settingsLabels[1].textContent = text.language;
@@ -359,7 +429,37 @@ async function renderSidebar() {
     return;
   }
 
-  list.innerHTML = sessions
+  let visibleSessions = sessions;
+  if (sidebarView === "pinned") {
+    visibleSessions = sessions.filter(
+      (session) =>
+        session?.is_pinned === true ||
+        session?.pinned === true ||
+        session?.isPinned === true ||
+        (session?.title || "").trim().startsWith("📌"),
+    );
+  }
+
+  if (sidebarView === "search" && sidebarSearchQuery) {
+    visibleSessions = visibleSessions.filter((session) =>
+      (session?.title || "").toLowerCase().includes(sidebarSearchQuery)
+    );
+  }
+
+  if (sidebarView === "search" && !sidebarSearchQuery) {
+    list.innerHTML = `<p class="no-sessions">Type to search your chats.</p>`;
+    return;
+  }
+
+  if (visibleSessions.length === 0) {
+    list.innerHTML =
+      sidebarView === "pinned"
+        ? `<p class="no-sessions">No pinned chats yet.</p>`
+        : `<p class="no-sessions">No matching chats found.</p>`;
+    return;
+  }
+
+  list.innerHTML = visibleSessions
     .map(
       (session) => `
     <div class="session-item ${session.id === currentSessionId ? "active" : ""}"
