@@ -283,14 +283,17 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  overflow: hidden;
+  overflow: visible;
   flex-shrink: 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--border);
   border-right: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 500;
 }
+
 
 .app-layout.sidebar-collapsed .sidebar {
   width: 70px;
@@ -693,6 +696,26 @@ body {
   color: var(--text);
   max-width: 100%;
   font-weight: 500;
+}
+
+.session-info .inline-rename-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 4px 8px;
+  outline: none;
+  font-family: inherit;
+  margin-bottom: 2px;
+  box-sizing: border-box;
+}
+
+.session-item.active .session-info .inline-rename-input {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
 }
 
 .session-date {

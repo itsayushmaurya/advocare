@@ -55,6 +55,9 @@ class LegalResponse(BaseModel):
     urgency: str
     session_id: Optional[int] = None
 
+class RenamePayload(BaseModel):
+    title: str
+
 
 class AuthRequest(BaseModel):
     email: str
@@ -372,11 +375,11 @@ async def toggle_pin_session(
 @app.patch("/sessions/{session_id}/rename")
 async def rename_session(
     session_id: int,
-    payload: dict,
+    payload: RenamePayload,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    new_title = payload.get("title", "").strip()
+    new_title = payload.title.strip()
     if not new_title:
         raise HTTPException(status_code=400, detail="Title cannot be empty.")
 

@@ -200,6 +200,7 @@ function initGlobalSearchShortcuts() {
       closeGlobalSearch();
       closeSidebarPopout();
       closeSessionMenu();
+      cancelInlineRename();
     }
   });
 }
@@ -303,7 +304,7 @@ function initSidebarExpandOnClick() {
   const sidebar = document.getElementById("sidebar");
   if (!sidebar) return;
   sidebar.addEventListener("click", (e) => {
-    if (!e.target.closest(".sidebar-nav-item") && !e.target.closest(".action-menu")) {
+    if (!e.target.closest(".sidebar-nav-item") && !e.target.closest(".action-menu") && !e.target.closest(".inline-rename-input")) {
       closeSidebarPopout();
     }
 
@@ -531,6 +532,7 @@ function startNewSession() {
   currentSessionId = null;
   conversationHistory = [];
   clearChatWindow();
+  document.getElementById("chatHeader")?.classList.add("hidden");
   syncHeroLayoutWithChat();
 }
 
@@ -540,6 +542,17 @@ async function loadSession(sessionId) {
     throw new Error("Could not load session messages.");
   }
   const messages = await response.json();
+
+  const sessions = await getAllSessions();
+  const session = sessions.find(s => s.id === sessionId);
+  if (session) {
+    const header = document.getElementById("chatHeader");
+    const titleEl = document.getElementById("activeChatTitle");
+    if (header && titleEl) {
+      titleEl.textContent = session.title;
+      header.classList.remove("hidden");
+    }
+  }
 
   currentSessionId = sessionId;
   conversationHistory = [];
@@ -586,6 +599,7 @@ async function loadLastSession() {
 
 // ─── Sidebar Rendering ──────────────────────────────────────
 let activeMenuSessionId = null;
+let renamingSessionId = null;
 
 async function renderSidebar() {
   const list = document.getElementById("sessionList");
@@ -623,25 +637,92 @@ async function renderSidebar() {
   }
 
   list.innerHTML = visibleSessions
-    .map(
-      (session) => `
-    <div class="session-item ${session.id === currentSessionId ? "active" : ""}"
-         onclick="loadSession(${session.id})">
+    .map((session) => {
+      const isActive = session.id === currentSessionId;
+      const isRenaming = session.id === renamingSessionId;
+
+      return `
+    <div class="session-item ${isActive ? "active" : ""}"
+         onclick="${isRenaming ? "" : `loadSession(${session.id})`}">
       <div class="session-info">
-        <span class="session-title">${escapeHtml(session.title)}</span>
+        ${
+          isRenaming
+            ? `<input type="text" class="inline-rename-input" id="renameInput-${session.id}" 
+                      value="${escapeHtml(session.title)}" 
+                      onclick="event.stopPropagation()"
+                      onkeydown="handleRenameKey(event, ${session.id})" 
+                      onblur="cancelInlineRename()">`
+            : `<span class="session-title">${escapeHtml(session.title)}</span>`
+        }
         <span class="session-date">${formatDate(session.updated_at)}</span>
       </div>
+      ${
+        isRenaming
+          ? ""
+          : `
       <button class="session-actions-btn" 
               onclick="toggleSessionMenu(event, ${session.id}, ${session.is_pinned}, '${encodeURIComponent(session.title)}')" 
               title="More actions">
         <i data-lucide="more-horizontal"></i>
-      </button>
+      </button>`
+      }
     </div>
-  `,
-    )
+  `;
+    })
     .join("");
 
   if (window.lucide?.createIcons) window.lucide.createIcons();
+
+  if (renamingSessionId) {
+    const input = document.getElementById(`renameInput-${renamingSessionId}`);
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }
+}
+
+function handleRenameKey(event, sessionId) {
+  event.stopPropagation();
+  if (event.key === "Enter") {
+    confirmInlineRename(sessionId);
+  } else if (event.key === "Escape") {
+    cancelInlineRename();
+  }
+}
+
+async function confirmInlineRename(sessionId) {
+  const input = document.getElementById(`renameInput-${sessionId}`);
+  const newTitle = input?.value.trim();
+  if (!newTitle) {
+    cancelInlineRename();
+    return;
+  }
+
+  try {
+    const response = await apiFetch(`/sessions/${sessionId}/rename`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: newTitle }),
+    });
+    if (!response.ok) throw new Error("Failed to rename");
+    
+    renamingSessionId = null;
+    const activeTitleEl = document.getElementById("activeChatTitle");
+    if (currentSessionId === sessionId && activeTitleEl) {
+      activeTitleEl.textContent = newTitle;
+    }
+    await renderSidebar();
+  } catch (err) {
+    console.error(err);
+    alert("Error renaming session");
+    cancelInlineRename();
+  }
+}
+
+function cancelInlineRename() {
+  renamingSessionId = null;
+  renderSidebar();
 }
 
 function toggleSessionMenu(event, sessionId, isPinned, title) {
@@ -662,8 +743,6 @@ function toggleSessionMenu(event, sessionId, isPinned, title) {
       ? '<i data-lucide="pin-off"></i> Unpin' 
       : '<i data-lucide="pin"></i> Pin';
   }
-
-  document.getElementById("renameInput").value = decodeURIComponent(title);
 
   const rect = btn.getBoundingClientRect();
   menu.style.top = `${rect.bottom + 5}px`;
@@ -699,41 +778,14 @@ async function handleSessionAction(action) {
   if (action === "pin") {
     await togglePinSession(sessionId);
   } else if (action === "rename") {
-    openRenameModal();
+    renamingSessionId = sessionId;
+    renderSidebar();
   } else if (action === "delete") {
     if (confirm("Are you sure you want to delete this chat?")) {
       await deleteSession(sessionId);
     }
   } else if (action === "share") {
     shareSession(sessionId);
-  }
-}
-
-function openRenameModal() {
-  document.getElementById("renameModal").classList.remove("hidden");
-  document.getElementById("renameInput").focus();
-}
-
-function closeRenameModal() {
-  document.getElementById("renameModal").classList.add("hidden");
-}
-
-async function confirmRename() {
-  const newTitle = document.getElementById("renameInput").value.trim();
-  if (!newTitle) return;
-
-  try {
-    const response = await apiFetch(`/sessions/${activeMenuSessionId}/rename`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle }),
-    });
-    if (!response.ok) throw new Error("Failed to rename");
-    closeRenameModal();
-    await renderSidebar();
-  } catch (err) {
-    console.error(err);
-    alert("Error renaming session");
   }
 }
 
@@ -755,9 +807,8 @@ async function deleteSession(sessionId) {
 }
 
 function shareSession(sessionId) {
-  const title = document.getElementById("renameInput").value;
   const dummyLink = `${window.location.origin}/chat/${sessionId}`;
-  navigator.clipboard.writeText(`Check out my legal guidance session on Advocare: ${title}\n${dummyLink}`)
+  navigator.clipboard.writeText(`Check out my legal guidance session on Advocare: \n${dummyLink}`)
     .then(() => alert("Share link copied to clipboard!"))
     .catch(() => alert("Failed to copy link."));
 }
