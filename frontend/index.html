@@ -32,10 +32,11 @@
             <i data-lucide="square-pen" class="nav-icon" aria-hidden="true"></i>
             <span class="nav-label" id="navNewChatLabel">New Chat</span>
           </button>
-          <button class="sidebar-nav-item" id="navSearch" onclick="handleSidebarNav('search')" title="Search Chats">
+          <button class="sidebar-nav-item" id="navSearch" onclick="openGlobalSearch()" title="Search Chats (Ctrl+K)">
             <i data-lucide="search" class="nav-icon" aria-hidden="true"></i>
             <span class="nav-label" id="navSearchLabel">Search Chats</span>
           </button>
+
           <button class="sidebar-nav-item" id="navPinned" onclick="handleSidebarNav('pinned')" title="Pinned Chats">
             <i data-lucide="pin" class="nav-icon" aria-hidden="true"></i>
             <span class="nav-label" id="navPinnedLabel">Pinned Chats</span>
@@ -199,7 +200,27 @@
       </aside>
     </div>
 
+    <!-- Global Search Modal -->
+    <div id="searchModal" class="modal hidden">
+      <div class="modal-overlay" onclick="closeGlobalSearch()"></div>
+      <div class="search-modal-content">
+        <div class="search-modal-header">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="globalSearchInput" placeholder="Search chats and messages..." oninput="handleGlobalSearch()" autocomplete="off" />
+          <button class="close-search-btn" onclick="closeGlobalSearch()">&times;</button>
+        </div>
+        <div id="globalSearchResults" class="search-results">
+          <p class="search-hint">Type to search through all your chats...</p>
+        </div>
+        <div class="search-modal-footer">
+          <span><kbd>Esc</kbd> to close</span>
+          <span><kbd>↵</kbd> to select</span>
+        </div>
+      </div>
+    </div>
+
     <script src="app.js"></script>
+
     
     <!-- Sidebar Collapse & Settings Menu Functions -->
     <script>

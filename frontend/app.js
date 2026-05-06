@@ -184,7 +184,119 @@ window.addEventListener("load", async () => {
   updateLanguageToggle();
   applyLanguageText();
   initSidebarExpandOnClick();
+  initGlobalSearchShortcuts();
 });
+
+function initGlobalSearchShortcuts() {
+  window.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+      e.preventDefault();
+      openGlobalSearch();
+    }
+    if (e.key === "Escape") {
+      closeGlobalSearch();
+    }
+  });
+}
+
+function openGlobalSearch() {
+  const modal = document.getElementById("searchModal");
+  const input = document.getElementById("globalSearchInput");
+  if (!modal || !input) return;
+
+  modal.classList.remove("hidden");
+  input.value = "";
+  input.focus();
+  document.getElementById("globalSearchResults").innerHTML =
+    '<p class="search-hint">Type to search through all your chats...</p>';
+}
+
+function closeGlobalSearch() {
+  document.getElementById("searchModal")?.classList.add("hidden");
+}
+
+async function handleGlobalSearch() {
+  const query = document.getElementById("globalSearchInput").value.trim().toLowerCase();
+  const resultsContainer = document.getElementById("globalSearchResults");
+
+  if (!query) {
+    resultsContainer.innerHTML = '<p class="search-hint">Type to search through all your chats...</p>';
+    return;
+  }
+
+  if (query.length < 2) return;
+
+  try {
+    const sessions = await getAllSessions();
+    const results = [];
+
+    for (const session of sessions) {
+      let match = false;
+      let snippet = "";
+
+      // Match title
+      if (session.title.toLowerCase().includes(query)) {
+        match = true;
+      }
+
+      // Match messages
+      const resp = await apiFetch(`/sessions/${session.id}/messages`);
+      const messages = await resp.json();
+      
+      for (const msg of messages) {
+        if (msg.content.toLowerCase().includes(query)) {
+          match = true;
+          // Find the first matching message for the snippet
+          if (!snippet) {
+            const index = msg.content.toLowerCase().indexOf(query);
+            const start = Math.max(0, index - 40);
+            const end = Math.min(msg.content.length, index + query.length + 60);
+            snippet = (start > 0 ? "..." : "") + msg.content.substring(start, end) + (end < msg.content.length ? "..." : "");
+          }
+        }
+      }
+
+      if (match) {
+        results.push({
+          id: session.id,
+          title: session.title,
+          snippet: snippet || "Matched in title",
+        });
+      }
+    }
+
+    if (results.length === 0) {
+      resultsContainer.innerHTML = '<p class="search-hint">No chats found matching your search.</p>';
+      return;
+    }
+
+    resultsContainer.innerHTML = results
+      .map(
+        (res) => `
+      <div class="search-result-item" onclick="loadAndCloseSearch(${res.id})">
+        <div class="search-result-title">${highlightText(res.title, query)}</div>
+        <div class="search-result-snippet">${highlightText(res.snippet, query)}</div>
+      </div>
+    `,
+      )
+      .join("");
+  } catch (err) {
+    console.error("Search error:", err);
+    resultsContainer.innerHTML = '<p class="search-hint">Error performing search.</p>';
+  }
+}
+
+function highlightText(text, query) {
+  if (!query) return text;
+  const regex = new RegExp(`(${query})`, "gi");
+  return text.replace(regex, '<span class="highlight">$1</span>');
+}
+
+async function loadAndCloseSearch(sessionId) {
+  closeGlobalSearch();
+  await loadSession(sessionId);
+}
+
 
 function initSidebarExpandOnClick() {
   const sidebar = document.getElementById("sidebar");
