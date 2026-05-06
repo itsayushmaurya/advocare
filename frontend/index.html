@@ -87,6 +87,14 @@
 
       <main class="main">
         <div class="chat-container hero-layout" id="chatContainer">
+          <div class="chat-header hidden" id="chatHeader">
+            <h2 id="activeChatTitle">Chat</h2>
+            <div class="chat-header-actions">
+              <button class="chat-header-btn" onclick="openShareModal()" title="Share Chat">
+                <i data-lucide="share-2"></i>
+              </button>
+            </div>
+          </div>
           <div class="chat-window" id="chatWindow"></div>
           <div class="chat-hero-header" id="chatHeroHeader">
             <h2 class="chat-hero-greeting" id="chatHeroGreeting">Hello</h2>
@@ -107,6 +115,9 @@
                       <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                       <path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a1.2 1.2 0 0 1 0 1.7l-.8.8a1.2 1.2 0 0 1-1.7 0l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a1.2 1.2 0 0 1-1.2 1.2h-1.1A1.2 1.2 0 0 1 10.9 20v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a1.2 1.2 0 0 1-1.7 0l-.8-.8a1.2 1.2 0 0 1 0-1.7l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a1.2 1.2 0 0 1-1.2-1.2v-1.1A1.2 1.2 0 0 1 4 11.4h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a1.2 1.2 0 0 1 0-1.7l.8-.8a1.2 1.2 0 0 1 1.7 0l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a1.2 1.2 0 0 1 1.2-1.2h1.1A1.2 1.2 0 0 1 13.6 4v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a1.2 1.2 0 0 1 1.7 0l.8.8a1.2 1.2 0 0 1 0 1.7l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6h.2a1.2 1.2 0 0 1 1.2 1.2v1.1a1.2 1.2 0 0 1-1.2 1.2h-.2a1 1 0 0 0-.9.6Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
+                  </button>
+                  <button class="settings-menu-btn input-icon-btn" onclick="openShareModal()" title="Share Chat">
+                    <i data-lucide="share-2" class="btn-icon"></i>
                   </button>
                   <button class="send-btn input-icon-btn" id="sendBtn" onclick="submitQuery()" aria-label="Send message">
                     <span id="btnText" class="sr-only">Get Legal Help</span>
@@ -250,6 +261,27 @@
         <div class="modal-footer">
           <button class="secondary-btn" onclick="closeRenameModal()">Cancel</button>
           <button class="primary-btn" onclick="confirmRename()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal hidden">
+      <div class="modal-overlay" onclick="closeShareModal()"></div>
+      <div class="modal-content share-modal">
+        <div class="modal-header">
+          <h3>Share Chat</h3>
+          <button class="close-modal-btn" onclick="closeShareModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="share-hint">Sharing will create a copy of this chat that anyone with the link can view.</p>
+          <div id="sharePreview" class="share-preview">
+            <!-- Preview content will be injected here -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" onclick="exportCurrentChatToText()">Export as Text</button>
+          <button class="primary-btn" onclick="copyShareLink()">Copy Link</button>
         </div>
       </div>
     </div>

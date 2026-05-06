@@ -807,10 +807,83 @@ async function deleteSession(sessionId) {
 }
 
 function shareSession(sessionId) {
-  const dummyLink = `${window.location.origin}/chat/${sessionId}`;
+  currentSessionId = sessionId; // Ensure we focus on this session
+  openShareModal();
+}
+
+async function openShareModal() {
+  if (!currentSessionId) return;
+  const modal = document.getElementById("shareModal");
+  const preview = document.getElementById("sharePreview");
+  if (!modal || !preview) return;
+
+  modal.classList.remove("hidden");
+  preview.innerHTML = '<p class="loading-preview">Loading preview...</p>';
+
+  try {
+    const response = await apiFetch(`/sessions/${currentSessionId}/messages`);
+    const messages = await response.json();
+    
+    if (messages.length === 0) {
+      preview.innerHTML = '<p class="no-messages">No messages to share.</p>';
+      return;
+    }
+
+    preview.innerHTML = messages
+      .map(m => `
+        <div class="preview-msg">
+          <span class="role-label ${m.role === 'user' ? 'user-label' : 'bot-label'}">${m.role}</span>
+          <div class="preview-content">${escapeHtml(m.content.substring(0, 200))}${m.content.length > 200 ? '...' : ''}</div>
+        </div>
+      `).join("");
+  } catch (err) {
+    preview.innerHTML = '<p class="error-preview">Error loading preview.</p>';
+  }
+}
+
+function closeShareModal() {
+  document.getElementById("shareModal")?.classList.add("hidden");
+}
+
+function copyShareLink() {
+  const dummyLink = `${window.location.origin}/chat/${currentSessionId}`;
   navigator.clipboard.writeText(`Check out my legal guidance session on Advocare: \n${dummyLink}`)
-    .then(() => alert("Share link copied to clipboard!"))
+    .then(() => {
+      alert("Share link copied to clipboard!");
+      closeShareModal();
+    })
     .catch(() => alert("Failed to copy link."));
+}
+
+async function exportCurrentChatToText() {
+  if (!currentSessionId) return;
+  try {
+    const response = await apiFetch(`/sessions/${currentSessionId}/messages`);
+    const messages = await response.json();
+    
+    let text = "ADVOCARE - LEGAL CHAT EXPORT\n";
+    text += "============================\n\n";
+    
+    messages.forEach(m => {
+      const role = m.role.toUpperCase();
+      const content = m.content
+        .replace(/---CASE_ANALYSIS_START---[\s\S]*?---CASE_ANALYSIS_END---/g, "")
+        .replace(/---CASE_ANALYSIS_START---[\s\S]*$/g, "")
+        .trim();
+      text += `${role}:\n${content}\n\n`;
+    });
+    
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `advocare-chat-${currentSessionId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    closeShareModal();
+  } catch (err) {
+    alert("Failed to export chat.");
+  }
 }
 
 async function togglePinSession(sessionId, event) {
