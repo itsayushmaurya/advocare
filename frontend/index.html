@@ -219,7 +219,43 @@
       </div>
     </div>
 
+    <!-- Session Action Menu -->
+    <div id="sessionActionMenu" class="action-menu hidden">
+      <button class="action-menu-item" onclick="handleSessionAction('share')">
+        <i data-lucide="share-2"></i> Share
+      </button>
+      <button class="action-menu-item" onclick="handleSessionAction('rename')">
+        <i data-lucide="edit-3"></i> Rename
+      </button>
+      <button class="action-menu-item" id="menuPinToggle" onclick="handleSessionAction('pin')">
+        <i data-lucide="pin"></i> Pin
+      </button>
+      <div class="menu-divider"></div>
+      <button class="action-menu-item delete-item" onclick="handleSessionAction('delete')">
+        <i data-lucide="trash-2"></i> Delete
+      </button>
+    </div>
+
+    <!-- Rename Modal -->
+    <div id="renameModal" class="modal hidden">
+      <div class="modal-overlay" onclick="closeRenameModal()"></div>
+      <div class="modal-content small-modal">
+        <div class="modal-header">
+          <h3>Rename Chat</h3>
+          <button class="close-modal-btn" onclick="closeRenameModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="renameInput" placeholder="Enter new chat title..." />
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" onclick="closeRenameModal()">Cancel</button>
+          <button class="primary-btn" onclick="confirmRename()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
     <script src="app.js"></script>
+
 
     
     <!-- Sidebar Collapse & Settings Menu Functions -->

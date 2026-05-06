@@ -2115,6 +2115,180 @@ textarea::placeholder {
   margin-right: 2px;
 }
 
+/* ── Session Action Menu ── */
+.session-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  position: relative;
+  overflow: visible;
+}
+
+.session-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.session-actions-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.session-item:hover .session-actions-btn,
+.session-actions-btn.active {
+  opacity: 1;
+}
+
+.session-actions-btn:hover {
+  background: var(--elevated);
+  color: var(--text);
+}
+
+.action-menu {
+  position: fixed;
+  width: 160px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  z-index: 3000;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: menuFadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes menuFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.action-menu-item {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-align: left;
+}
+
+.action-menu-item:hover {
+  background: var(--elevated);
+}
+
+.action-menu-item i {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+}
+
+.action-menu-item.delete-item {
+  color: #ef4444;
+}
+
+.action-menu-item.delete-item i {
+  color: #ef4444;
+}
+
+.action-menu-item.delete-item:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px;
+}
+
+/* ── Rename Modal ── */
+.small-modal {
+  width: 400px;
+  max-width: 90vw;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+#renameInput {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+
+#renameInput:focus {
+  border-color: var(--primary);
+}
+
+.modal-footer {
+  padding: 12px 20px;
+  background: var(--elevated);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.secondary-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.secondary-btn:hover {
+  background: var(--surface);
+}
+
+.primary-btn {
+  background: var(--primary);
+  border: 1px solid var(--primary-dark);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.primary-btn:hover {
+  background: var(--primary-dark);
+}
+
 @media (max-width: 800px) {
   .contact-page {
     padding: 24px 16px;

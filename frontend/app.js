@@ -4,11 +4,12 @@ let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
 let isSidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-let sidebarView = "recents";
+let sidebarView = localStorage.getItem("sidebarView") || "recents"; // 'recents' or 'pinned'
 let sidebarSearchQuery = "";
 let currentUserId = null;
 let replyMode = normalizeReplyMode(localStorage.getItem("replyMode")); // 'quick' or 'detail'
 let language = normalizeLanguage(localStorage.getItem("language")); // 'en' or 'hi'
+
 const UI_TEXT = {
   en: {
     inputPlaceholder:
@@ -146,7 +147,6 @@ function setHeroLayout(enabled) {
 function syncHeroLayoutWithChat() {
   const chatWindow = document.getElementById("chatWindow");
   if (!chatWindow) return;
-  // Keep hero mode until the user sends their first message in the current session.
   const hasUserMessage = chatWindow.querySelector(".user-message") !== null;
   setHeroLayout(!hasUserMessage);
 }
@@ -173,7 +173,10 @@ async function loadCurrentUser() {
 window.addEventListener("load", async () => {
   if (!ensureAuthenticated()) return;
   if (window.lucide?.createIcons) window.lucide.createIcons();
-  setSidebarActiveNav("navRecents");
+  
+  const activeNavId = sidebarView === "pinned" ? "navPinned" : "navRecents";
+  setSidebarActiveNav(activeNavId);
+
   updateHeroGreeting();
   await loadCurrentUser();
   applySidebarState();
@@ -195,6 +198,8 @@ function initGlobalSearchShortcuts() {
     }
     if (e.key === "Escape") {
       closeGlobalSearch();
+      closeSidebarPopout();
+      closeSessionMenu();
     }
   });
 }
@@ -234,19 +239,16 @@ async function handleGlobalSearch() {
       let match = false;
       let snippet = "";
 
-      // Match title
       if (session.title.toLowerCase().includes(query)) {
         match = true;
       }
 
-      // Match messages
       const resp = await apiFetch(`/sessions/${session.id}/messages`);
       const messages = await resp.json();
       
       for (const msg of messages) {
         if (msg.content.toLowerCase().includes(query)) {
           match = true;
-          // Find the first matching message for the snippet
           if (!snippet) {
             const index = msg.content.toLowerCase().indexOf(query);
             const start = Math.max(0, index - 40);
@@ -297,15 +299,16 @@ async function loadAndCloseSearch(sessionId) {
   await loadSession(sessionId);
 }
 
-
 function initSidebarExpandOnClick() {
   const sidebar = document.getElementById("sidebar");
   if (!sidebar) return;
   sidebar.addEventListener("click", (e) => {
+    if (!e.target.closest(".sidebar-nav-item") && !e.target.closest(".action-menu")) {
+      closeSidebarPopout();
+    }
+
     if (isSidebarCollapsed) {
-      // Check if the click was not on the toggle button itself
-      // (though toggleSidebarCollapse also works, we want a specific behavior)
-      if (!e.target.closest("#sidebarToggle")) {
+      if (!e.target.closest("#sidebarToggle") && !e.target.closest(".sidebar-nav-item")) {
         toggleSidebarCollapse();
       }
     }
@@ -321,6 +324,10 @@ function applySidebarState() {
   toggleBtn.textContent = isSidebarCollapsed ? "▶" : "◀";
   toggleBtn.title = isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar";
   toggleBtn.setAttribute("aria-label", toggleBtn.title);
+  
+  if (!isSidebarCollapsed) {
+    closeSidebarPopout();
+  }
 }
 
 function toggleSidebarCollapse(event) {
@@ -333,49 +340,91 @@ function toggleSidebarCollapse(event) {
 function setSidebarActiveNav(navId) {
   document.querySelectorAll(".sidebar-nav-item").forEach((btn) => {
     btn.classList.toggle("active", btn.id === navId);
+    if (btn.id === "navPinned") {
+      btn.classList.toggle("active-toggle", sidebarView === "pinned");
+    }
   });
 }
 
-function handleSidebarNav(action) {
+async function handleSidebarNav(action) {
+  if (isSidebarCollapsed) {
+    if (action === "recents") {
+      await openSidebarPopout("recents");
+    } else if (action === "pinned") {
+      await openSidebarPopout("pinned");
+    } else if (action === "new") {
+      toggleSidebarCollapse();
+      startNewSession();
+    }
+    return;
+  }
+
   if (action === "new") {
-    setSidebarActiveNav("navNewChat");
     startNewSession();
-    return;
+  } else if (action === "pinned") {
+    sidebarView = sidebarView === "pinned" ? "recents" : "pinned";
+    localStorage.setItem("sidebarView", sidebarView);
+    setSidebarActiveNav(sidebarView === "pinned" ? "navPinned" : "navRecents");
+    await renderSidebar();
+  } else if (action === "recents") {
+    sidebarView = "recents";
+    localStorage.setItem("sidebarView", sidebarView);
+    setSidebarActiveNav("navRecents");
+    await renderSidebar();
   }
-
-  if (action === "search") {
-    sidebarView = "search";
-    setSidebarActiveNav("navSearch");
-    document.getElementById("sidebarSearchWrap")?.classList.remove("hidden");
-    document.getElementById("sidebarSearchInput")?.focus();
-    renderSidebar();
-    return;
-  }
-
-  if (action === "pinned") {
-    sidebarView = "pinned";
-    sidebarSearchQuery = "";
-    const searchInput = document.getElementById("sidebarSearchInput");
-    if (searchInput) searchInput.value = "";
-    document.getElementById("sidebarSearchWrap")?.classList.add("hidden");
-    setSidebarActiveNav("navPinned");
-    renderSidebar();
-    return;
-  }
-
-  sidebarView = "recents";
-  sidebarSearchQuery = "";
-  const searchInput = document.getElementById("sidebarSearchInput");
-  if (searchInput) searchInput.value = "";
-  document.getElementById("sidebarSearchWrap")?.classList.add("hidden");
-  setSidebarActiveNav("navRecents");
-  renderSidebar();
 }
 
-function handleSidebarSearchInput() {
-  const input = document.getElementById("sidebarSearchInput");
-  sidebarSearchQuery = (input?.value || "").trim().toLowerCase();
-  renderSidebar();
+async function openSidebarPopout(type) {
+  const popout = document.getElementById("sidebarPopout");
+  const title = document.getElementById("popoutTitle");
+  const list = document.getElementById("popoutList");
+  const text = UI_TEXT[language] || UI_TEXT.en;
+
+  if (!popout || !title || !list) return;
+
+  title.textContent = type === "pinned" ? text.pinnedChats : text.recents;
+  popout.classList.remove("hidden");
+
+  let sessions = await getAllSessions();
+  let visible = sessions;
+
+  if (type === "pinned") {
+    visible = sessions.filter(s => s.is_pinned).slice(0, 10);
+  } else {
+    visible = sessions.slice(0, 10);
+  }
+
+  if (visible.length === 0) {
+    list.innerHTML = `<p class="no-sessions">No chats found.</p>`;
+  } else {
+    list.innerHTML = visible
+      .map(
+        (s) => `
+      <div class="session-item" onclick="loadAndClosePopout(${s.id})">
+        <div class="session-info">
+          <span class="session-title">${escapeHtml(s.title)}</span>
+          <span class="session-date">${formatDate(s.updated_at)}</span>
+        </div>
+        <button class="session-actions-btn" 
+                onclick="toggleSessionMenu(event, ${s.id}, ${s.is_pinned}, '${encodeURIComponent(s.title)}')" 
+                title="More actions">
+          <i data-lucide="more-horizontal"></i>
+        </button>
+      </div>
+    `
+      )
+      .join("");
+  }
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+}
+
+function closeSidebarPopout() {
+  document.getElementById("sidebarPopout")?.classList.add("hidden");
+}
+
+async function loadAndClosePopout(sessionId) {
+  closeSidebarPopout();
+  await loadSession(sessionId);
 }
 
 function setReplyMode(mode) {
@@ -420,8 +469,6 @@ function applyLanguageText() {
   const searchChatsLabel = document.getElementById("navSearchLabel");
   const pinnedChatsLabel = document.getElementById("navPinnedLabel");
   const recentsLabel = document.getElementById("navRecentsLabel");
-  const previousChatsLabel = document.getElementById("sidebarListLabel");
-  const searchInput = document.getElementById("sidebarSearchInput");
   const settingsHeader = document.querySelector(".settings-menu-header");
   const settingsLabels = document.querySelectorAll(".settings-label");
   const quickToggle = document.getElementById("quickToggle");
@@ -435,8 +482,6 @@ function applyLanguageText() {
   if (searchChatsLabel) searchChatsLabel.textContent = text.searchChats;
   if (pinnedChatsLabel) pinnedChatsLabel.textContent = text.pinnedChats;
   if (recentsLabel) recentsLabel.textContent = text.recents;
-  if (previousChatsLabel) previousChatsLabel.textContent = text.previousChats;
-  if (searchInput) searchInput.placeholder = text.searchChats;
   if (settingsHeader) settingsHeader.textContent = text.settings;
   if (settingsLabels[0]) settingsLabels[0].textContent = text.outputType;
   if (settingsLabels[1]) settingsLabels[1].textContent = text.language;
@@ -535,15 +580,17 @@ async function loadLastSession() {
       await loadSession(sessions[0].id);
       return;
     }
-  } catch {
-    // keep default empty state on error
-  }
+  } catch { }
   startNewSession();
 }
 
 // ─── Sidebar Rendering ──────────────────────────────────────
+let activeMenuSessionId = null;
+
 async function renderSidebar() {
   const list = document.getElementById("sessionList");
+  const label = document.getElementById("sidebarListLabel");
+  const text = UI_TEXT[language] || UI_TEXT.en;
   let sessions = [];
 
   try {
@@ -558,33 +605,20 @@ async function renderSidebar() {
     return;
   }
 
-  let visibleSessions = sessions;
+  let visibleSessions = [];
+  const pinnedSessions = sessions.filter((s) => s.is_pinned).slice(0, 10);
+  const unpinnedSessions = sessions.filter((s) => !s.is_pinned);
+
   if (sidebarView === "pinned") {
-    visibleSessions = sessions.filter(
-      (session) =>
-        session?.is_pinned === true ||
-        session?.pinned === true ||
-        session?.isPinned === true ||
-        (session?.title || "").trim().startsWith("📌"),
-    );
-  }
-
-  if (sidebarView === "search" && sidebarSearchQuery) {
-    visibleSessions = visibleSessions.filter((session) =>
-      (session?.title || "").toLowerCase().includes(sidebarSearchQuery)
-    );
-  }
-
-  if (sidebarView === "search" && !sidebarSearchQuery) {
-    list.innerHTML = `<p class="no-sessions">Type to search your chats.</p>`;
-    return;
+    if (label) label.textContent = text.pinnedChats;
+    visibleSessions = pinnedSessions;
+  } else {
+    if (label) label.textContent = text.recents;
+    visibleSessions = [...pinnedSessions, ...unpinnedSessions];
   }
 
   if (visibleSessions.length === 0) {
-    list.innerHTML =
-      sidebarView === "pinned"
-        ? `<p class="no-sessions">No pinned chats yet.</p>`
-        : `<p class="no-sessions">No matching chats found.</p>`;
+    list.innerHTML = `<p class="no-sessions">No chats found.</p>`;
     return;
   }
 
@@ -595,20 +629,137 @@ async function renderSidebar() {
          onclick="loadSession(${session.id})">
       <div class="session-info">
         <span class="session-title">${escapeHtml(session.title)}</span>
-        <span class="session-date">${formatDate(session.created_at)}</span>
+        <span class="session-date">${formatDate(session.updated_at)}</span>
       </div>
-      <button class="pin-btn ${session.is_pinned ? "pinned" : ""}" 
-              onclick="togglePinSession(${session.id}, event)" 
-              title="${session.is_pinned ? "Unpin chat" : "Pin chat"}">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="${session.is_pinned ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
+      <button class="session-actions-btn" 
+              onclick="toggleSessionMenu(event, ${session.id}, ${session.is_pinned}, '${encodeURIComponent(session.title)}')" 
+              title="More actions">
+        <i data-lucide="more-horizontal"></i>
       </button>
     </div>
   `,
     )
     .join("");
+
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+}
+
+function toggleSessionMenu(event, sessionId, isPinned, title) {
+  event.stopPropagation();
+  const menu = document.getElementById("sessionActionMenu");
+  const btn = event.currentTarget;
+  
+  if (activeMenuSessionId === sessionId && !menu.classList.contains("hidden")) {
+    closeSessionMenu();
+    return;
+  }
+
+  activeMenuSessionId = sessionId;
+  
+  const pinToggle = document.getElementById("menuPinToggle");
+  if (pinToggle) {
+    pinToggle.innerHTML = isPinned 
+      ? '<i data-lucide="pin-off"></i> Unpin' 
+      : '<i data-lucide="pin"></i> Pin';
+  }
+
+  document.getElementById("renameInput").value = decodeURIComponent(title);
+
+  const rect = btn.getBoundingClientRect();
+  menu.style.top = `${rect.bottom + 5}px`;
+  menu.style.left = `${rect.left - 130}px`;
+  menu.classList.remove("hidden");
+  btn.classList.add("active");
+
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+
+  setTimeout(() => {
+    document.addEventListener("click", closeSessionMenuOnClickOutside);
+  }, 0);
+}
+
+function closeSessionMenu() {
+  const menu = document.getElementById("sessionActionMenu");
+  if (menu) menu.classList.add("hidden");
+  document.querySelectorAll(".session-actions-btn").forEach(b => b.classList.remove("active"));
+  document.removeEventListener("click", closeSessionMenuOnClickOutside);
+}
+
+function closeSessionMenuOnClickOutside(event) {
+  const menu = document.getElementById("sessionActionMenu");
+  if (menu && !menu.contains(event.target)) {
+    closeSessionMenu();
+  }
+}
+
+async function handleSessionAction(action) {
+  const sessionId = activeMenuSessionId;
+  closeSessionMenu();
+
+  if (action === "pin") {
+    await togglePinSession(sessionId);
+  } else if (action === "rename") {
+    openRenameModal();
+  } else if (action === "delete") {
+    if (confirm("Are you sure you want to delete this chat?")) {
+      await deleteSession(sessionId);
+    }
+  } else if (action === "share") {
+    shareSession(sessionId);
+  }
+}
+
+function openRenameModal() {
+  document.getElementById("renameModal").classList.remove("hidden");
+  document.getElementById("renameInput").focus();
+}
+
+function closeRenameModal() {
+  document.getElementById("renameModal").classList.add("hidden");
+}
+
+async function confirmRename() {
+  const newTitle = document.getElementById("renameInput").value.trim();
+  if (!newTitle) return;
+
+  try {
+    const response = await apiFetch(`/sessions/${activeMenuSessionId}/rename`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: newTitle }),
+    });
+    if (!response.ok) throw new Error("Failed to rename");
+    closeRenameModal();
+    await renderSidebar();
+  } catch (err) {
+    console.error(err);
+    alert("Error renaming session");
+  }
+}
+
+async function deleteSession(sessionId) {
+  try {
+    const response = await apiFetch(`/sessions/${sessionId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) throw new Error("Failed to delete");
+    
+    if (currentSessionId === sessionId) {
+      startNewSession();
+    }
+    await renderSidebar();
+  } catch (err) {
+    console.error(err);
+    alert("Error deleting session");
+  }
+}
+
+function shareSession(sessionId) {
+  const title = document.getElementById("renameInput").value;
+  const dummyLink = `${window.location.origin}/chat/${sessionId}`;
+  navigator.clipboard.writeText(`Check out my legal guidance session on Advocare: ${title}\n${dummyLink}`)
+    .then(() => alert("Share link copied to clipboard!"))
+    .catch(() => alert("Failed to copy link."));
 }
 
 async function togglePinSession(sessionId, event) {
@@ -617,7 +768,14 @@ async function togglePinSession(sessionId, event) {
     const response = await apiFetch(`/sessions/${sessionId}/pin`, {
       method: "PATCH",
     });
-    if (!response.ok) throw new Error("Failed to toggle pin");
+    if (!response.ok) {
+      if (response.status === 400) {
+        const errorData = await response.json();
+        alert(errorData.detail);
+        return;
+      }
+      throw new Error("Failed to toggle pin");
+    }
     await renderSidebar();
   } catch (err) {
     console.error(err);
@@ -636,7 +794,8 @@ function formatDate(ts) {
 
 // ─── Chat UI ────────────────────────────────────────────────
 function clearChatWindow() {
-  document.getElementById("chatWindow").innerHTML = "";
+  const cw = document.getElementById("chatWindow");
+  if (cw) cw.innerHTML = "";
   syncHeroLayoutWithChat();
 }
 
@@ -724,12 +883,6 @@ async function submitQuery() {
     );
     if (data.session_id) currentSessionId = data.session_id;
 
-    console.log("PARSED:", score, positives, negatives);
-
-    // Update history
-    //conversationHistory.push({ role: "user", content: input });
-    //conversationHistory.push({ role: "assistant", content: cleanText, category: data.detected_category });
-
     conversationHistory.push({ role: "user", content: input });
     conversationHistory.push({
       role: "assistant",
@@ -740,12 +893,10 @@ async function submitQuery() {
         )
         .replace(/---CASE_ANALYSIS_START---[\s\S]*$/g, "")
         .trim(),
-      // NO category field here — Groq rejects unknown fields
     });
 
     appendBotMessage(cleanText, data.detected_category, data.urgency);
 
-    // Update strength panel
     if (score !== null) {
       updateStrengthPanel(score, positives, negatives);
     }
@@ -893,9 +1044,11 @@ function removeTyping(id) {
 function setLoading(state) {
   isLoading = state;
   const btn = document.getElementById("sendBtn");
-  document.getElementById("btnText").classList.toggle("hidden", state);
-  document.getElementById("btnLoader").classList.toggle("hidden", !state);
-  btn.disabled = state;
+  if (btn) {
+    document.getElementById("btnText").classList.toggle("hidden", state);
+    document.getElementById("btnLoader").classList.toggle("hidden", !state);
+    btn.disabled = state;
+  }
 }
 
 function isNearBottom(container, threshold = 150) {
@@ -920,10 +1073,12 @@ function scrollToBottom() {
 
 function showError(msg) {
   const input = document.getElementById("userInput");
-  input.style.borderColor = "#ef4444";
-  setTimeout(() => {
-    input.style.borderColor = "";
-  }, 2000);
+  if (input) {
+    input.style.borderColor = "#ef4444";
+    setTimeout(() => {
+      input.style.borderColor = "";
+    }, 2000);
+  }
   alert(msg);
 }
 
@@ -946,18 +1101,14 @@ function parseResponse(fullText) {
 
   if (analysisMatch) {
     const block = analysisMatch[1];
-
-    // Remove the analysis block from visible chat text
     cleanText = fullText
       .replace(/---CASE_ANALYSIS_START---[\s\S]*?---CASE_ANALYSIS_END---/, "")
       .replace(/---CASE_ANALYSIS_START---[\s\S]*$/, "")
       .trim();
 
-    // Parse score
     const scoreMatch = block.match(/STRENGTH_SCORE:\s*(\d+)/);
     if (scoreMatch) score = parseInt(scoreMatch[1]);
 
-    // Parse positives
     const posSection = block.match(
       /POSITIVE_POINTS:([\s\S]*?)NEGATIVE_POINTS:/,
     );
@@ -969,7 +1120,6 @@ function parseResponse(fullText) {
         .filter(Boolean);
     }
 
-    // Parse negatives
     const negSection = block.match(
       /NEGATIVE_POINTS:([\s\S]*?)(?:---CASE_ANALYSIS_END---|$)/,
     );
@@ -1031,31 +1181,23 @@ async function exportToPDF(msgId, encodedText) {
 function generateJsPDF(text) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 15;
   const textWidth = pageWidth - 2 * margin;
-  
   const date = new Date().toLocaleDateString('en-IN');
-  
   doc.setFontSize(20);
   doc.setTextColor(26, 86, 219);
   doc.text("Advocare", margin, margin + 5);
-  
   doc.setFontSize(10);
   doc.setTextColor(100, 116, 139);
   doc.text("AI Legal Assistant for Indian Citizens", margin, margin + 12);
-  
   doc.setDrawColor(200, 200, 200);
   doc.line(margin, margin + 15, pageWidth - margin, margin + 15);
-  
   doc.setFontSize(11);
   doc.setTextColor(30, 41, 59);
-  
   const splitText = doc.splitTextToSize(text, textWidth);
   let yPosition = margin + 25;
-  
   splitText.forEach((line) => {
     if (yPosition > pageHeight - 30) {
       doc.addPage();
@@ -1064,15 +1206,12 @@ function generateJsPDF(text) {
     doc.text(line, margin, yPosition);
     yPosition += 6;
   });
-  
   doc.setDrawColor(200, 200, 200);
   doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
-  
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
   doc.text("Disclaimer: This is AI-generated information and NOT legal advice.", margin, pageHeight - 14);
   doc.text(`Exported on ${date}`, margin, pageHeight - 10);
-  
   doc.save("legal-advice.pdf");
 }
 
@@ -1141,11 +1280,9 @@ function generateHTMLPDF(text) {
     </body>
     </html>
   `;
-  
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
   document.body.appendChild(iframe);
-  
   iframe.onload = () => {
     iframe.contentDocument.write(htmlContent);
     iframe.contentDocument.close();
@@ -1156,7 +1293,6 @@ function generateHTMLPDF(text) {
       }, 100);
     }, 500);
   };
-  
   iframe.src = 'about:blank';
 }
 
@@ -1174,32 +1310,11 @@ function closeLanguageSubmenu() {
 
 function toggleProfileMenu(event) {
   event.stopPropagation();
-  const item = event.target.closest(".profile-menu-item");
-  if (item) {
-    if (item.id === "profileLanguageMenu") {
-      return;
-    }
-    const text = item.textContent.trim();
-    if (text === "Privacy Policy") {
-      window.location.href = "privacy.html";
-      return;
-    }
-    if (text === "Contact Us") {
-      window.location.href = "contact.html";
-      return;
-    }
-    if (text === "Logout") {
-      logout();
-      return;
-    }
-  }
   const dropdown = document.getElementById("profileDropdown");
   if (!dropdown) return;
-  const nextHidden = !dropdown.classList.contains("hidden");
-  dropdown.classList.toggle("hidden");
-  if (nextHidden) {
-    closeLanguageSubmenu();
-  }
+  const isHidden = dropdown.classList.contains("hidden");
+  dropdown.classList.toggle("hidden", !isHidden);
+  if (!isHidden) closeLanguageSubmenu();
 }
 
 function toggleLanguageSubmenu(event) {
@@ -1207,7 +1322,7 @@ function toggleLanguageSubmenu(event) {
   const languageMenu = document.getElementById("profileLanguageMenu");
   if (!languageMenu) return;
   const willOpen = !languageMenu.classList.contains("open");
-  languageMenu.classList.toggle("open");
+  languageMenu.classList.toggle("open", willOpen);
   languageMenu.setAttribute("aria-expanded", willOpen ? "true" : "false");
 }
 
@@ -1226,24 +1341,7 @@ function selectProfileLanguage(event, lang) {
 document.addEventListener("click", function (event) {
   const profileContainer = document.getElementById("profileContainer");
   const dropdown = document.getElementById("profileDropdown");
-  if (!profileContainer || !dropdown) return;
-  const item = event.target.closest(".profile-menu-item");
-  if (item) {
-    const text = item.textContent.trim();
-    if (text === "Privacy Policy") {
-      window.location.href = "privacy.html";
-      return;
-    }
-    if (text === "Contact Us") {
-      window.location.href = "contact.html";
-      return;
-    }
-    if (text === "Logout") {
-      logout();
-      return;
-    }
-  }
-  if (!profileContainer.contains(event.target)) {
+  if (profileContainer && dropdown && !profileContainer.contains(event.target)) {
     dropdown.classList.add("hidden");
     closeLanguageSubmenu();
   }
@@ -1251,67 +1349,42 @@ document.addEventListener("click", function (event) {
 
 function logout() {
   localStorage.removeItem(TOKEN_KEY);
-  conversationHistory = [];
-  currentSessionId = null;
-  isLoading = false;
   window.location.href = "auth.html?tab=login";
 }
 
 // ═══════════════════════════════════════════════════════
-// STRENGTH PANEL REDESIGN
+// STRENGTH PANEL
 // ═══════════════════════════════════════════════════════
 let panelCollapsed = localStorage.getItem("panelCollapsed") === "true";
 let panelWidth = parseInt(localStorage.getItem("panelWidth")) || 260;
 
-
 function initStrengthPanel() {
   const panel = document.getElementById("strengthPanel");
   if (!panel) return;
-
-  const handle = document.querySelector(".strength-resize-handle");
-  const toggleBtn = document.getElementById("strengthToggleBtn");
-  const expandBtn = document.getElementById("strengthExpandBtn");
-  const collapsed = document.getElementById("strengthCollapsed");
-
   updatePanelState();
-
-  if (handle) {
-    handle.addEventListener("mousedown", startResize);
-  }
-
-  if (toggleBtn) {
-    toggleBtn.addEventListener("click", collapsePanelToggle);
-  }
-  
-  if (expandBtn) {
-    expandBtn.addEventListener("click", expandPanel);
-  }
-
-  if (collapsed) {
-    collapsed.addEventListener("click", expandPanel);
-  }
+  const handle = document.querySelector(".strength-resize-handle");
+  if (handle) handle.addEventListener("mousedown", startResize);
+  document.getElementById("strengthToggleBtn")?.addEventListener("click", collapsePanelToggle);
+  document.getElementById("strengthExpandBtn")?.addEventListener("click", expandPanel);
+  document.getElementById("strengthCollapsed")?.addEventListener("click", expandPanel);
 }
 
 function startResize(e) {
   if (panelCollapsed) return;
   e.preventDefault();
-  const panel = document.getElementById("strengthPanel");
   const startX = e.clientX;
-  const startW = panel.offsetWidth;
-
+  const startW = document.getElementById("strengthPanel").offsetWidth;
   const doResize = (e) => {
-    let newW = startW + (e.clientX - startX);
+    let newW = startW + (startX - e.clientX);
     newW = Math.max(60, Math.min(newW, 400));
-    panel.style.width = newW + "px";
+    document.getElementById("strengthPanel").style.width = newW + "px";
   };
-
   const stopResize = () => {
     document.removeEventListener("mousemove", doResize);
     document.removeEventListener("mouseup", stopResize);
     panelWidth = document.getElementById("strengthPanel").offsetWidth;
     localStorage.setItem("panelWidth", panelWidth);
   };
-
   document.addEventListener("mousemove", doResize);
   document.addEventListener("mouseup", stopResize);
 }
@@ -1333,15 +1406,14 @@ function updatePanelState() {
   const content = document.getElementById("strengthContent");
   const collapsed = document.getElementById("strengthCollapsed");
   const handle = document.querySelector(".strength-resize-handle");
-
   if (panelCollapsed) {
-    content.classList.add("hidden");
-    collapsed.classList.remove("hidden");
+    content?.classList.add("hidden");
+    collapsed?.classList.remove("hidden");
     if (handle) handle.style.display = "none";
     if (panel) panel.style.width = "56px";
   } else {
-    content.classList.remove("hidden");
-    collapsed.classList.add("hidden");
+    content?.classList.remove("hidden");
+    collapsed?.classList.add("hidden");
     if (handle) handle.style.display = "block";
     if (panel) panel.style.width = panelWidth + "px";
   }
@@ -1350,23 +1422,16 @@ function updatePanelState() {
 function updateStrengthPanel(score, positives, negatives) {
   document.getElementById("strengthEmpty").classList.add("hidden");
   document.getElementById("strengthResults").classList.remove("hidden");
-
   const color = score >= 65 ? "#059669" : score >= 40 ? "#f59e0b" : "#ef4444";
-  document.getElementById("scoreDisplay").innerHTML =
-    `<span style="color:${color}">${score}%</span><br>
-     <span style="font-size:13px;font-weight:500;color:#64748b">Case Strength</span>`;
-
+  document.getElementById("scoreDisplay").innerHTML = `<span style="color:${color}">${score}%</span><br><span style="font-size:13px;font-weight:500;color:#64748b">Case Strength</span>`;
   const barRed = document.getElementById("barRed");
   const barGreen = document.getElementById("barGreen");
   if (barRed) barRed.style.width = `${100 - score}%`;
   if (barGreen) barGreen.style.width = `${score}%`;
-
   const posBox = document.getElementById("positivePoints");
   const negBox = document.getElementById("negativePoints");
-
   posBox.className = "points-box green-box";
   posBox.innerHTML = "<ul>" + positives.map((p) => `<li>✦ ${escapeHtml(p)}</li>`).join("") + "</ul>";
-
   negBox.className = "points-box red-box";
   negBox.innerHTML = "<ul>" + negatives.map((n) => `<li>⚠ ${escapeHtml(n)}</li>`).join("") + "</ul>";
 }
