@@ -3,7 +3,7 @@ const TOKEN_KEY = "advocare_token";
 let conversationHistory = [];
 let isLoading = false;
 let currentSessionId = null;
-let isSidebarCollapsed = false;
+let isSidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
 let sidebarView = "recents";
 let sidebarSearchQuery = "";
 let currentUserId = null;
@@ -183,7 +183,22 @@ window.addEventListener("load", async () => {
   updateReplyToggle();
   updateLanguageToggle();
   applyLanguageText();
+  initSidebarExpandOnClick();
 });
+
+function initSidebarExpandOnClick() {
+  const sidebar = document.getElementById("sidebar");
+  if (!sidebar) return;
+  sidebar.addEventListener("click", (e) => {
+    if (isSidebarCollapsed) {
+      // Check if the click was not on the toggle button itself
+      // (though toggleSidebarCollapse also works, we want a specific behavior)
+      if (!e.target.closest("#sidebarToggle")) {
+        toggleSidebarCollapse();
+      }
+    }
+  });
+}
 
 function applySidebarState() {
   const appLayout = document.getElementById("appLayout");
@@ -196,8 +211,10 @@ function applySidebarState() {
   toggleBtn.setAttribute("aria-label", toggleBtn.title);
 }
 
-function toggleSidebarCollapse() {
+function toggleSidebarCollapse(event) {
+  if (event) event.stopPropagation();
   isSidebarCollapsed = !isSidebarCollapsed;
+  localStorage.setItem("sidebarCollapsed", isSidebarCollapsed);
   applySidebarState();
 }
 

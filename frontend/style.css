@@ -283,9 +283,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  overflow: visible;
+  overflow: hidden;
   flex-shrink: 0;
-  transition: width 0.3s ease, padding 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--border);
   border-right: 1px solid var(--border);
   border-radius: 16px;
@@ -296,7 +296,13 @@ body {
   width: 70px;
   padding: 12px 8px;
   border-radius: 14px;
+  cursor: pointer;
 }
+
+.app-layout.sidebar-collapsed .sidebar:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
 
 .sidebar-top {
   display: flex;
@@ -346,6 +352,7 @@ body {
   font-weight: 600;
   color: var(--text);
   line-height: 1.1;
+  transition: opacity 0.2s ease;
 }
 
 .app-layout.sidebar-collapsed .sidebar-brand {
@@ -354,6 +361,8 @@ body {
 }
 
 .app-layout.sidebar-collapsed .sidebar-brand-text {
+  opacity: 0;
+  pointer-events: none;
   display: none;
 }
 
@@ -364,11 +373,14 @@ body {
   justify-content: flex-end;
   align-items: center;
   margin-bottom: 2px;
+  transition: all 0.3s ease;
 }
 
 .app-layout.sidebar-collapsed .sidebar-header {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .sidebar-toggle {
@@ -432,6 +444,13 @@ body {
   font-size: 13px;
   font-weight: 500;
   line-height: 1.2;
+  transition: opacity 0.2s ease;
+}
+
+.app-layout.sidebar-collapsed .nav-label {
+  opacity: 0;
+  pointer-events: none;
+  display: none;
 }
 
 .new-chat-btn {
@@ -474,9 +493,12 @@ body {
   color: var(--text-secondary);
   padding: 2px 6px;
   margin-top: 2px;
+  transition: opacity 0.2s ease;
 }
 
 .app-layout.sidebar-collapsed .sidebar-label {
+  opacity: 0;
+  pointer-events: none;
   display: none;
 }
 
@@ -487,11 +509,15 @@ body {
   overflow-y: auto;
   min-height: 0;
   padding-right: 2px;
+  transition: opacity 0.2s ease;
 }
 
 .app-layout.sidebar-collapsed .session-list {
+  opacity: 0;
+  pointer-events: none;
   display: none;
 }
+
 
 .app-layout.sidebar-collapsed .sidebar-content {
   flex: 0;
