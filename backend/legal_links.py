@@ -24,6 +24,21 @@ LEGAL_LINKS = {
         "helpline": "181",
         "description": "National Commission for Women"
     },
+    "property": {
+        "portal": "https://dolr.gov.in",
+        "helpline": "N/A",
+        "description": "Department of Land Resources"
+    },
+    "traffic": {
+        "portal": "https://parivahan.gov.in",
+        "helpline": "1033",
+        "description": "Parivahan Sewa (Ministry of Road Transport)"
+    },
+    "banking": {
+        "portal": "https://cms.rbi.org.in",
+        "helpline": "14448",
+        "description": "RBI Banking Ombudsman"
+    },
     "police": {
         "portal": "https://www.india.gov.in/official-website-state-police",
         "helpline": "100",

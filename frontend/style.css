@@ -622,6 +622,35 @@ body {
   border-color: transparent;
 }
 
+.pin-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.session-item:hover .pin-btn,
+.pin-btn.pinned {
+  opacity: 1;
+}
+
+.pin-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.pin-btn.pinned {
+  color: #f59e0b;
+}
+
+
 .session-info {
   display: flex;
   flex-direction: column;

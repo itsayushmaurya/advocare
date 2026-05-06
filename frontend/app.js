@@ -468,10 +468,32 @@ async function renderSidebar() {
         <span class="session-title">${escapeHtml(session.title)}</span>
         <span class="session-date">${formatDate(session.created_at)}</span>
       </div>
+      <button class="pin-btn ${session.is_pinned ? "pinned" : ""}" 
+              onclick="togglePinSession(${session.id}, event)" 
+              title="${session.is_pinned ? "Unpin chat" : "Pin chat"}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="${session.is_pinned ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+      </button>
     </div>
   `,
     )
     .join("");
+}
+
+async function togglePinSession(sessionId, event) {
+  if (event) event.stopPropagation();
+  try {
+    const response = await apiFetch(`/sessions/${sessionId}/pin`, {
+      method: "PATCH",
+    });
+    if (!response.ok) throw new Error("Failed to toggle pin");
+    await renderSidebar();
+  } catch (err) {
+    console.error(err);
+    alert("Error pinning session");
+  }
 }
 
 function formatDate(ts) {
@@ -708,6 +730,8 @@ function formatCategory(cat) {
     rental: "Rental Dispute",
     domestic_violence: "Domestic Issue",
     property: "Property Dispute",
+    traffic: "Traffic / RTO",
+    banking: "Banking / Finance",
     general: "General Legal",
   };
   return map[cat] || cat;

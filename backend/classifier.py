@@ -21,7 +21,18 @@ KEYWORD_MAP = {
     ],
     "property": [
         "property", "land", "ownership", "encroachment", "registration",
-        "mutation", "plot", "boundary", "dispute"
+        "mutation", "plot", "boundary", "dispute", "sale deed", "gift deed",
+        "inheritance", "will", "partition", "patta", "khata"
+    ],
+    "traffic": [
+        "traffic", "challan", "fine", "license", "dl", "rc", "accident",
+        "rto", "drunk driving", "overspeeding", "helmet", "seatbelt",
+        "vehicle impounded", "towed"
+    ],
+    "banking": [
+        "bank", "account", "transaction", "atm", "loan", "interest",
+        "emi", "credit card", "debit card", "cheque", "bounce",
+        "unauthorized", "ombudsman", "rbi"
     ]
 }
 
