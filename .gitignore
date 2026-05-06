@@ -9,3 +9,10 @@ venv/
 *.egg-info/
 dist/
 build/
+
+.gemini/
+gha-creds-*.json
+.github/commands/
+.github/workflows/
+GEMINI.md
+.github/copilot-instructions.md
