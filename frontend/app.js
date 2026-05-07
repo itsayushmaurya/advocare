@@ -1234,7 +1234,7 @@ function parseResponse(fullText) {
     if (scoreMatch) score = parseInt(scoreMatch[1]);
 
     const posSection = block.match(
-      /POSITIVE_POINTS:([\s\S]*?)NEGATIVE_POINTS:/,
+      /POSITIVE_POINTS:([\s\S]*?)(?:NEGATIVE_POINTS:|---CASE_ANALYSIS_END---|$)/,
     );
     if (posSection) {
       positives = posSection[1]
