@@ -16,3 +16,4 @@ gha-creds-*.json
 .github/workflows/
 GEMINI.md
 .github/copilot-instructions.md
+.github/ 
