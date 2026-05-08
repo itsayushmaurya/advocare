@@ -6,7 +6,7 @@ load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODEL = "openai/gpt-oss-120b"  # Free, fast, good quality on Groq
+MODEL = "llama-3.3-70b-versatile"  # High-performance model on Groq
 
 async def call_llm(system_prompt: str, user_message: str, history: list = []) -> str:
     messages = [{"role": "system", "content": system_prompt}]
@@ -26,7 +26,7 @@ async def call_llm(system_prompt: str, user_message: str, history: list = []) ->
         "model": MODEL,
         "messages": messages,
         "temperature": 0.4,      # Lower = more consistent, structured output
-        "max_tokens": 1024,
+        "max_tokens": 4096,
         "top_p": 0.9
     }
     

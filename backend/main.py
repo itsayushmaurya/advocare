@@ -55,6 +55,9 @@ class LegalResponse(BaseModel):
     urgency: str
     session_id: Optional[int] = None
 
+class RenamePayload(BaseModel):
+    title: str
+
 
 class AuthRequest(BaseModel):
     email: str
@@ -94,6 +97,7 @@ class UserProfileResponse(BaseModel):
 class SessionListItem(BaseModel):
     id: int
     title: str
+    is_pinned: bool
     created_at: datetime
 
 
@@ -336,13 +340,95 @@ async def get_session_messages(
     )
     return messages
 
+
+@app.patch("/sessions/{session_id}/pin")
+async def toggle_pin_session(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    target_session = (
+        db.query(ChatSession)
+        .filter(ChatSession.id == session_id, ChatSession.user_id == current_user.id)
+        .first()
+    )
+    if not target_session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    if not target_session.is_pinned:
+        pinned_count = (
+            db.query(ChatSession)
+            .filter(ChatSession.user_id == current_user.id, ChatSession.is_pinned == True)
+            .count()
+        )
+        if pinned_count >= 10:
+            raise HTTPException(
+                status_code=400,
+                detail="You can only pin up to 10 chats. Please unpin another chat first.",
+            )
+
+    target_session.is_pinned = not target_session.is_pinned
+    db.commit()
+    return {"id": target_session.id, "is_pinned": target_session.is_pinned}
+
+
+@app.patch("/sessions/{session_id}/rename")
+async def rename_session(
+    session_id: int,
+    payload: RenamePayload,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    new_title = payload.title.strip()
+    if not new_title:
+        raise HTTPException(status_code=400, detail="Title cannot be empty.")
+
+    target_session = (
+        db.query(ChatSession)
+        .filter(ChatSession.id == session_id, ChatSession.user_id == current_user.id)
+        .first()
+    )
+    if not target_session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    target_session.title = new_title
+    db.commit()
+    return {"id": target_session.id, "title": target_session.title}
+
+
+@app.delete("/sessions/{session_id}")
+async def delete_session(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    target_session = (
+        db.query(ChatSession)
+        .filter(ChatSession.id == session_id, ChatSession.user_id == current_user.id)
+        .first()
+    )
+    if not target_session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    db.delete(target_session)
+    db.commit()
+    return {"message": "Session deleted successfully"}
+
+
 @app.get("/categories")
 def get_categories():
     """Returns all supported legal issue categories"""
     return {
         "categories": [
-            "cybercrime", "consumer", "labour", 
-            "rental", "domestic_violence", "property", "general"
+            "cybercrime",
+            "consumer",
+            "labour",
+            "rental",
+            "domestic_violence",
+            "property",
+            "traffic",
+            "banking",
+            "general",
         ]
     }
 

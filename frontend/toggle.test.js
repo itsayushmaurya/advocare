@@ -40,6 +40,13 @@ function createContext(storedValues = {}) {
     langHiToggle: createButton(),
     userInput: { addEventListener() {}, focus() {}, value: "" },
   };
+
+  const welcomeMessage = {
+    querySelector(selector) {
+      return { textContent: "" };
+    },
+  };
+
   const store = { ...storedValues };
   const context = {
     atob(value) {
@@ -50,6 +57,15 @@ function createContext(storedValues = {}) {
       addEventListener() {},
       getElementById(id) {
         return elements[id] || null;
+      },
+      querySelector(selector) {
+        if (selector === ".settings-menu-header") return { textContent: "" };
+        if (selector === ".bot-message.welcome") return welcomeMessage;
+        return null;
+      },
+      querySelectorAll(selector) {
+        if (selector === ".settings-label") return [{ textContent: "" }, { textContent: "" }];
+        return [];
       },
       removeEventListener() {},
     },

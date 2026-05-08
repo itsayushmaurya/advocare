@@ -9,124 +9,125 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </head>
   <body>
-    <header class="header">
-      <div class="header-inner">
-        <div class="logo" onclick="window.location.href = 'home.html';" style="cursor: pointer;">
-          <span class="logo-icon">⚖️</span>
-          <div>
-            <h1>Advocare</h1>
-            <p>Free AI Legal Guidance for Every Indian</p>
-          </div>
-        </div>
-        <div class="profile-container" id="profileContainer" onclick="toggleProfileMenu(event)">
-          <div class="avatar" id="profileAvatar">--</div>
-          <span class="username" id="profileName">Loading...</span>
-          <div class="profile-dropdown hidden" id="profileDropdown">
-            <div class="profile-email" id="profileEmail">Loading...</div>
-            <button class="profile-menu-item" type="button" onclick="openProfilePage(event)">Profile</button>
-            <div class="profile-menu-item profile-menu-submenu">
-              <span>Language</span>
-              <span class="submenu-arrow">›</span>
-              <div class="language-submenu">
-                <button type="button" onclick="selectProfileLanguage(event, 'en')">English</button>
-                <button type="button" onclick="selectProfileLanguage(event, 'hi')">हिंदी</button>
-              </div>
-            </div>
-            <button class="profile-menu-item" type="button">Privacy Policy</button>
-            <button class="profile-menu-item" type="button">Contact Us</button>
-            <button class="profile-menu-item logout-item" type="button">Logout</button>
-          </div>
-        </div>
-      </div>
-    </header>
-
     <div class="app-layout" id="appLayout">
       <button class="hamburger-menu" id="hamburger" onclick="toggleSidebar()">☰</button>
       <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebarCollapse()" title="Collapse sidebar">
-            ◀
+        <div class="sidebar-top">
+          <div class="sidebar-brand" onclick="window.location.href = 'home.html';" title="Go to home">
+            <span class="sidebar-brand-icon">⚖️</span>
+            <span class="sidebar-brand-text">Advocare</span>
+          </div>
+        </div>
+        <div class="sidebar-nav">
+          <div class="sidebar-header">
+            <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebarCollapse()" title="Collapse sidebar">
+              ◀
+            </button>
+          </div>
+          <button class="sidebar-nav-item new-chat-btn" id="navNewChat" onclick="handleSidebarNav('new')" title="New Chat">
+            <i data-lucide="square-pen" class="nav-icon" aria-hidden="true"></i>
+            <span class="nav-label" id="navNewChatLabel">New Chat</span>
           </button>
-          <button class="sidebar-new-chat-icon" onclick="startNewSession()" title="New Chat">
-            +
+          <button class="sidebar-nav-item" id="navSearch" onclick="openGlobalSearch()" title="Search Chats (Ctrl+K)">
+            <i data-lucide="search" class="nav-icon" aria-hidden="true"></i>
+            <span class="nav-label" id="navSearchLabel">Search Chats</span>
+          </button>
+
+          <button class="sidebar-nav-item" id="navPinned" onclick="handleSidebarNav('pinned')" title="Pinned Chats">
+            <i data-lucide="pin" class="nav-icon" aria-hidden="true"></i>
+            <span class="nav-label" id="navPinnedLabel">Pinned Chats</span>
+          </button>
+          <button class="sidebar-nav-item active" id="navRecents" onclick="handleSidebarNav('recents')" title="Recents">
+            <i data-lucide="history" class="nav-icon" aria-hidden="true"></i>
+            <span class="nav-label" id="navRecentsLabel">Recents</span>
           </button>
         </div>
-        <button class="new-chat-btn" onclick="startNewSession()">
-          + New Chat
-        </button>
-        <p class="sidebar-label">Previous Chats</p>
-        <div id="sessionList" class="session-list"></div>
+        <div class="sidebar-content">
+          <div class="sidebar-search-wrap hidden" id="sidebarSearchWrap">
+            <input
+              class="sidebar-search-input"
+              id="sidebarSearchInput"
+              type="text"
+              placeholder="Search chats..."
+              oninput="handleSidebarSearchInput()"
+            />
+          </div>
+          <p class="sidebar-label" id="sidebarListLabel">Previous Chats</p>
+          <div id="sessionList" class="session-list"></div>
+        </div>
+        <div class="sidebar-bottom">
+          <div class="profile-container sidebar-profile" id="profileContainer" onclick="toggleProfileMenu(event)">
+            <div class="avatar" id="profileAvatar">--</div>
+            <div class="sidebar-profile-meta">
+              <span class="username" id="profileName">Loading...</span>
+              <span class="sidebar-profile-email" id="profileEmail">Loading...</span>
+            </div>
+            <div class="profile-dropdown hidden" id="profileDropdown">
+              <div class="profile-email">Account</div>
+              <button class="profile-menu-item" type="button" onclick="openProfilePage(event)">Profile</button>
+              <div class="profile-menu-item profile-menu-submenu" id="profileLanguageMenu" onclick="toggleLanguageSubmenu(event)" role="button" tabindex="0" aria-expanded="false">
+                <span>Language</span>
+                <span class="submenu-arrow">›</span>
+                <div class="language-submenu">
+                  <button type="button" onclick="selectProfileLanguage(event, 'en')">English</button>
+                  <button type="button" onclick="selectProfileLanguage(event, 'hi')">हिंदी</button>
+                </div>
+              </div>
+              <button class="profile-menu-item" type="button">Privacy Policy</button>
+              <button class="profile-menu-item" type="button">Contact Us</button>
+              <button class="profile-menu-item logout-item" type="button">Logout</button>
+            </div>
+          </div>
+        </div>
       </aside>
 
       <main class="main">
-        <div class="examples-section">
-          <p class="examples-label">Try an example:</p>
-          <div class="chips">
-            <button
-              class="chip"
-              onclick="
-                setExample(
-                  'My landlord is refusing to return my security deposit after I vacated the flat',
-                )
-              "
-            >
-              🏠 Landlord deposit
-            </button>
-            <button
-              class="chip"
-              onclick="
-                setExample(
-                  'I got scammed online, someone took money from my UPI account',
-                )
-              "
-            >
-              💸 UPI fraud
-            </button>
-            <button
-              class="chip"
-              onclick="
-                setExample('My employer has not paid my salary for 2 months')
-              "
-            >
-              👔 Unpaid salary
-            </button>
-            <button
-              class="chip"
-              onclick="
-                setExample(
-                  'I received a defective product and they are not giving refund',
-                )
-              "
-            >
-              📦 Defective product
-            </button>
-          </div>
-        </div>
-
-        <div class="chat-container">
-          <div class="chat-window" id="chatWindow"></div>
-          <div class="input-area">
-            <textarea
-              id="userInput"
-              placeholder="Describe your legal problem here... (e.g. 'My boss fired me without notice')"
-              rows="3"
-              onkeydown="handleKey(event)"
-            ></textarea>
-            <div class="input-actions">
-              <span class="char-count" id="charCount">0 / 2000</span>
-              <div class="input-actions-right">
-                <button class="settings-menu-btn" id="settingsMenuBtn" onclick="toggleSettingsMenu()" title="Settings">
-                  ⚙️
-                </button>
-                <button class="send-btn" id="sendBtn" onclick="submitQuery()">
-                  <span id="btnText">Get Legal Help →</span>
-                  <span id="btnLoader" class="hidden">Analyzing...</span>
-                </button>
-              </div>
+        <div class="chat-container hero-layout" id="chatContainer">
+          <div class="chat-header hidden" id="chatHeader">
+            <h2 id="activeChatTitle">Chat</h2>
+            <div class="chat-header-actions">
+              <button class="chat-header-btn" onclick="openShareModal()" title="Share Chat">
+                <i data-lucide="share-2"></i>
+              </button>
             </div>
+          </div>
+          <div class="chat-window" id="chatWindow"></div>
+          <div class="chat-hero-header" id="chatHeroHeader">
+            <h2 class="chat-hero-greeting" id="chatHeroGreeting">Hello</h2>
+            <p class="chat-hero-subtitle">How can I assist you today?</p>
+          </div>
+            <div class="input-area">
+              <textarea
+                id="userInput"
+                placeholder="Describe your legal problem here... (e.g. 'My boss fired me without notice')"
+                rows="3"
+                onkeydown="handleKey(event)"
+              ></textarea>
+              <span class="char-count" id="charCount">0 / 2000</span>
+              <div class="input-actions">
+                <div class="input-actions-right">
+                  <button class="settings-menu-btn input-icon-btn" id="settingsMenuBtn" onclick="toggleSettingsMenu()" title="Settings" aria-label="Settings">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a1.2 1.2 0 0 1 0 1.7l-.8.8a1.2 1.2 0 0 1-1.7 0l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a1.2 1.2 0 0 1-1.2 1.2h-1.1A1.2 1.2 0 0 1 10.9 20v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a1.2 1.2 0 0 1-1.7 0l-.8-.8a1.2 1.2 0 0 1 0-1.7l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a1.2 1.2 0 0 1-1.2-1.2v-1.1A1.2 1.2 0 0 1 4 11.4h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a1.2 1.2 0 0 1 0-1.7l.8-.8a1.2 1.2 0 0 1 1.7 0l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a1.2 1.2 0 0 1 1.2-1.2h1.1A1.2 1.2 0 0 1 13.6 4v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a1.2 1.2 0 0 1 1.7 0l.8.8a1.2 1.2 0 0 1 0 1.7l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6h.2a1.2 1.2 0 0 1 1.2 1.2v1.1a1.2 1.2 0 0 1-1.2 1.2h-.2a1 1 0 0 0-.9.6Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                  <button class="settings-menu-btn input-icon-btn" onclick="openShareModal()" title="Share Chat">
+                    <i data-lucide="share-2" class="btn-icon"></i>
+                  </button>
+                  <button class="send-btn input-icon-btn" id="sendBtn" onclick="submitQuery()" aria-label="Send message">
+                    <span id="btnText" class="sr-only">Get Legal Help</span>
+                    <svg class="btn-icon" id="sendIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M3 20.5L21 12L3 3.5L3.01 10.5L14 12L3.01 13.5L3 20.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span id="btnLoader" class="hidden sr-only">Analyzing...</span>
+                  </button>
+                </div>
+              </div>
             
             <!-- Settings Menu Popup -->
             <div class="settings-menu hidden" id="settingsMenu">
@@ -210,7 +211,84 @@
       </aside>
     </div>
 
+    <!-- Global Search Modal -->
+    <div id="searchModal" class="modal hidden">
+      <div class="modal-overlay" onclick="closeGlobalSearch()"></div>
+      <div class="search-modal-content">
+        <div class="search-modal-header">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="globalSearchInput" placeholder="Search chats and messages..." oninput="handleGlobalSearch()" autocomplete="off" />
+          <button class="close-search-btn" onclick="closeGlobalSearch()">&times;</button>
+        </div>
+        <div id="globalSearchResults" class="search-results">
+          <p class="search-hint">Type to search through all your chats...</p>
+        </div>
+        <div class="search-modal-footer">
+          <span><kbd>Esc</kbd> to close</span>
+          <span><kbd>↵</kbd> to select</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session Action Menu -->
+    <div id="sessionActionMenu" class="action-menu hidden">
+      <button class="action-menu-item" onclick="handleSessionAction('share')">
+        <i data-lucide="share-2"></i> Share
+      </button>
+      <button class="action-menu-item" onclick="handleSessionAction('rename')">
+        <i data-lucide="edit-3"></i> Rename
+      </button>
+      <button class="action-menu-item" id="menuPinToggle" onclick="handleSessionAction('pin')">
+        <i data-lucide="pin"></i> Pin
+      </button>
+      <div class="menu-divider"></div>
+      <button class="action-menu-item delete-item" onclick="handleSessionAction('delete')">
+        <i data-lucide="trash-2"></i> Delete
+      </button>
+    </div>
+
+    <!-- Rename Modal -->
+    <div id="renameModal" class="modal hidden">
+      <div class="modal-overlay" onclick="closeRenameModal()"></div>
+      <div class="modal-content small-modal">
+        <div class="modal-header">
+          <h3>Rename Chat</h3>
+          <button class="close-modal-btn" onclick="closeRenameModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="renameInput" placeholder="Enter new chat title..." />
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" onclick="closeRenameModal()">Cancel</button>
+          <button class="primary-btn" onclick="confirmRename()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal hidden">
+      <div class="modal-overlay" onclick="closeShareModal()"></div>
+      <div class="modal-content share-modal">
+        <div class="modal-header">
+          <h3>Share Chat</h3>
+          <button class="close-modal-btn" onclick="closeShareModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="share-hint">Sharing will create a copy of this chat that anyone with the link can view.</p>
+          <div id="sharePreview" class="share-preview">
+            <!-- Preview content will be injected here -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="secondary-btn" onclick="exportCurrentChatToText()">Export as Text</button>
+          <button class="primary-btn" onclick="copyShareLink()">Copy Link</button>
+        </div>
+      </div>
+    </div>
+
     <script src="app.js"></script>
+
+
     
     <!-- Sidebar Collapse & Settings Menu Functions -->
     <script>
