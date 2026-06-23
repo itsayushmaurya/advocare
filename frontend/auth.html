@@ -371,7 +371,14 @@
         border-color: #4f6ef7;
         box-shadow: 0 0 20px rgba(79, 110, 247, 0.3);
       }
+
+      #googleSignInButton {
+        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+      }
     </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
     <header class="header">
@@ -504,6 +511,8 @@
 
           <button id="submitBtn" type="submit">Login</button>
         </form>
+
+        <div id="googleSignInButton"></div>
 
         <p class="auth-error" id="authError"></p>
 
@@ -1007,12 +1016,81 @@
         }
       });
 
+      async function handleGoogleSignIn(response) {
+        const errorEl = document.getElementById("authError");
+        const submitBtn = document.getElementById("submitBtn");
+        
+        errorEl.textContent = "";
+        
+        if (!response || !response.credential) {
+          errorEl.textContent = "Google sign-in failed. Please try again.";
+          return;
+        }
+        
+        try {
+          const result = await fetch(`${API_BASE}/auth/google`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_token: response.credential }),
+          });
+          
+          const data = await result.json();
+          if (!result.ok) {
+            throw new Error(data.detail || "Google authentication failed.");
+          }
+          
+          if (!data.access_token) {
+            throw new Error("No token returned by server.");
+          }
+          
+          localStorage.setItem(TOKEN_KEY, data.access_token);
+          localStorage.setItem("advocare_user_name", data.name);
+          localStorage.setItem("advocare_user_email", data.email);
+          localStorage.setItem("advocare_user_age", data.age || "");
+          localStorage.setItem("advocare_user_type", data.user_type);
+          
+          allowNavigationWithoutWarning = true;
+          window.location.href = "index.html";
+        } catch (error) {
+          errorEl.textContent = error.message || "Could not authenticate with Google. Please try again.";
+        }
+      }
+
+      function initializeGoogleSignIn() {
+        if (typeof google === "undefined" || !google.accounts) {
+          console.warn("Google Sign-In library not loaded yet. Retrying...");
+          setTimeout(initializeGoogleSignIn, 1000);
+          return;
+        }
+        
+        try {
+          google.accounts.id.initialize({
+            client_id: "545906696592-lnln4kj7ff46o5l8oflnh6vj8s1cdlaf.apps.googleusercontent.com",
+            callback: handleGoogleSignIn,
+          });
+          
+          const buttonElement = document.getElementById("googleSignInButton");
+          if (buttonElement) {
+            google.accounts.id.renderButton(buttonElement, {
+              theme: "dark",
+              size: "large",
+              text: "signin_with",
+            });
+          }
+        } catch (error) {
+          console.error("Failed to initialize Google Sign-In:", error);
+        }
+      }
+
       window.addEventListener("load", () => {
         const form = document.getElementById("authForm");
         form.addEventListener("submit", handleAuth);
 
         // Setup tracking for form inputs
         setupFormTracking();
+
+        // Initialize Google Sign-In button
+        initializeGoogleSignIn();
 
         const token = localStorage.getItem(TOKEN_KEY);
         if (isTokenValid(token)) {

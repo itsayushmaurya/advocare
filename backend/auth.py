@@ -7,6 +7,8 @@ from fastapi import Depends, Header, HTTPException, status
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 
 from db import get_db
 from models import User
@@ -25,12 +27,60 @@ def _get_secret_key() -> str:
     return secret_key
 
 
+def _get_google_client_id() -> str:
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    if not client_id or client_id == "YOUR_CLIENT_ID.apps.googleusercontent.com":
+        raise ValueError("GOOGLE_CLIENT_ID is not configured in environment variables.")
+    return client_id
+
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
     return pwd_context.verify(plain_password, password_hash)
+
+
+def verify_google_token(token: str) -> dict:
+    """
+    Verify Google ID token and extract user claims.
+    
+    Args:
+        token: Google ID token from frontend
+        
+    Returns:
+        Dictionary with keys: email, name, picture
+        
+    Raises:
+        HTTPException: If token is invalid or verification fails
+    """
+    try:
+        payload = google_id_token.verify_oauth2_token(
+            token,
+            google_requests.Request(),
+            _get_google_client_id()
+        )
+        
+        email = payload.get("email")
+        if not email:
+            raise ValueError("Email not found in Google token")
+        
+        return {
+            "email": email,
+            "name": payload.get("name", ""),
+            "picture": payload.get("picture", "")
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid Google token: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=401,
+            detail="Failed to verify Google token. Please try again."
+        )
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

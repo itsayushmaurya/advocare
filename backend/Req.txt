@@ -10,3 +10,4 @@ passlib
 python-jose[cryptography]
 slowapi
 python-multipart
+google-auth==2.25.2

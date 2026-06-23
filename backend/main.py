@@ -9,7 +9,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-from auth import create_access_token, get_current_user, hash_password, verify_password
+from auth import create_access_token, get_current_user, hash_password, verify_password, verify_google_token
 from db import get_db, engine, Base
 from llm_service import call_llm
 from prompt_engine import build_prompt, build_followup_prompt
@@ -62,6 +62,10 @@ class RenamePayload(BaseModel):
 class AuthRequest(BaseModel):
     email: str
     password: str
+
+
+class GoogleAuthRequest(BaseModel):
+    id_token: str
 
 
 class RegisterRequest(BaseModel):
@@ -171,6 +175,42 @@ async def login_user(payload: AuthRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    token = create_access_token({"sub": str(user.id)})
+    return LoginResponse(
+        access_token=token,
+        token_type="bearer",
+        name=user.name,
+        email=user.email,
+        age=user.age,
+        user_type=user.user_type
+    )
+
+
+@app.post("/auth/google", response_model=LoginResponse)
+async def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
+    """
+    Authenticate user via Google OAuth 2.0.
+    
+    Verifies Google ID token, creates/updates user in database,
+    and returns Advocare JWT for subsequent authenticated requests.
+    """
+    claims = verify_google_token(payload.id_token)
+    email = claims["email"].lower().strip()
+    name = claims["name"].strip() or "Google User"
+
+    user = db.query(User).filter(User.email == email).first()
+    
+    if not user:
+        user = User(
+            email=email,
+            name=name,
+            password_hash="",
+            user_type="citizen"
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
     token = create_access_token({"sub": str(user.id)})
     return LoginResponse(
