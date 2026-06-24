@@ -831,7 +831,6 @@ function shareSession(sessionId) {
 }
 
 async function openShareModal() {
-  if (!currentSessionId) return;
   const modal = document.getElementById("shareModal");
   const linkInput = document.getElementById("shareLinkInput");
   if (!modal || !linkInput) return;
@@ -927,7 +926,11 @@ async function shareCurrentChatOnWhatsApp() {
 
 function getShareableChatLink() {
   const url = new URL(window.location.href);
-  url.searchParams.set("session", currentSessionId);
+  if (currentSessionId) {
+    url.searchParams.set("session", currentSessionId);
+  } else {
+    url.searchParams.delete("session");
+  }
   url.hash = "";
   return url.toString();
 }
