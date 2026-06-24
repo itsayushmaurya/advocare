@@ -924,6 +924,13 @@ body {
   border: 1px solid var(--border);
 }
 
+.bot-message .message-content {
+  position: relative;
+  padding-right: 44px;
+  padding-bottom: 36px;
+  overflow: visible;
+}
+
 .message .bot-avatar {
   display: none;
 }
@@ -1003,50 +1010,62 @@ body {
   line-height: 1.6;
 }
 
-.message-actions {
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
-}
-
-.whatsapp-share {
-  background: transparent;
+.copy-response-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 28px;
+  height: 28px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
+  border-radius: 8px;
+  background: rgba(17, 17, 24, 0.78);
   color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease, background 0.2s ease,
+    transform 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-.whatsapp-share:hover {
-  background: var(--elevated);
+.copy-response-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
+  background: rgba(79, 110, 247, 0.12);
+  transform: translateY(-1px);
 }
 
-.pdf-export {
-  background: transparent;
+.copy-response-btn:active {
+  transform: scale(0.96);
+}
+
+.copy-response-btn svg {
+  pointer-events: none;
+}
+
+.copy-feedback {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(17, 17, 24, 0.96);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.pdf-export:hover {
-  border-color: var(--error);
-  color: var(--error);
-  background: rgba(239, 68, 68, 0.1);
+.copy-response-btn.copied .copy-feedback {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ── Typing ── */
