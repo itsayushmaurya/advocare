@@ -613,7 +613,7 @@ async function loadInitialSession() {
     }
   }
 
-  await loadLastSession();
+  startNewSession();
 }
 
 // ─── Sidebar Rendering ──────────────────────────────────────
