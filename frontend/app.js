@@ -1578,6 +1578,16 @@ function openProfilePage(event) {
   window.location.href = "profile.html";
 }
 
+function openPrivacyPolicy(event) {
+  event.stopPropagation();
+  window.location.href = "privacy.html";
+}
+
+function openContactUs(event) {
+  event.stopPropagation();
+  window.location.href = "contact.html";
+}
+
 function selectProfileLanguage(event, lang) {
   event.stopPropagation();
   setLanguage(lang);
