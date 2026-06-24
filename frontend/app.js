@@ -532,7 +532,11 @@ function startNewSession() {
   currentSessionId = null;
   conversationHistory = [];
   clearChatWindow();
+  resetStrengthPanel();
   document.getElementById("chatHeader")?.classList.add("hidden");
+  const activeTitleEl = document.getElementById("activeChatTitle");
+  if (activeTitleEl) activeTitleEl.textContent = "Chat";
+  clearSessionFromUrl();
   syncHeroLayoutWithChat();
 }
 
@@ -557,6 +561,7 @@ async function loadSession(sessionId) {
   currentSessionId = sessionId;
   conversationHistory = [];
   clearChatWindow();
+  resetStrengthPanel();
 
   let hasStrength = false;
   messages.forEach((msg) => {
@@ -1673,4 +1678,44 @@ function updateStrengthPanel(score, positives, negatives) {
   posBox.innerHTML = "<ul>" + positives.map((p) => `<li>✦ ${escapeHtml(p)}</li>`).join("") + "</ul>";
   negBox.className = "points-box red-box";
   negBox.innerHTML = "<ul>" + negatives.map((n) => `<li>⚠ ${escapeHtml(n)}</li>`).join("") + "</ul>";
+}
+
+function resetStrengthPanel() {
+  const emptyState = document.getElementById("strengthEmpty");
+  const results = document.getElementById("strengthResults");
+  const scoreDisplay = document.getElementById("scoreDisplay");
+  const barRed = document.getElementById("barRed");
+  const barGreen = document.getElementById("barGreen");
+  const positivePoints = document.getElementById("positivePoints");
+  const negativePoints = document.getElementById("negativePoints");
+  const tooltip = document.getElementById("strengthTooltip");
+  const tooltipTitle = document.getElementById("tooltipTitle");
+  const tooltipList = document.getElementById("tooltipList");
+
+  emptyState?.classList.remove("hidden");
+  results?.classList.add("hidden");
+
+  if (scoreDisplay) scoreDisplay.innerHTML = "";
+  if (barRed) barRed.style.width = "0%";
+  if (barGreen) barGreen.style.width = "0%";
+  if (positivePoints) {
+    positivePoints.className = "points-box";
+    positivePoints.innerHTML = "";
+    positivePoints.classList.add("hidden");
+  }
+  if (negativePoints) {
+    negativePoints.className = "points-box";
+    negativePoints.innerHTML = "";
+    negativePoints.classList.add("hidden");
+  }
+  if (tooltip) tooltip.classList.add("hidden");
+  if (tooltipTitle) tooltipTitle.textContent = "";
+  if (tooltipList) tooltipList.innerHTML = "";
+}
+
+function clearSessionFromUrl() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("session")) return;
+  url.searchParams.delete("session");
+  window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
 }
