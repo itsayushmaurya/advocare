@@ -274,14 +274,28 @@
           <button class="close-modal-btn" onclick="closeShareModal()">&times;</button>
         </div>
         <div class="modal-body">
-          <p class="share-hint">Sharing will create a copy of this chat that anyone with the link can view.</p>
-          <div id="sharePreview" class="share-preview">
-            <!-- Preview content will be injected here -->
+          <label class="share-link-label" for="shareLinkInput">Shareable link</label>
+          <div class="share-link-field">
+            <input id="shareLinkInput" type="text" readonly aria-label="Shareable link" />
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="secondary-btn" onclick="exportCurrentChatToText()">Export as Text</button>
-          <button class="primary-btn" onclick="copyShareLink()">Copy Link</button>
+        <div class="modal-footer share-modal-footer">
+          <div class="share-actions-left">
+            <button class="share-icon-btn" type="button" onclick="shareCurrentChatOnWhatsApp()" title="Share on WhatsApp" aria-label="Share on WhatsApp">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M19.05 4.95A9.94 9.94 0 0 0 12.01 2C6.49 2 2 6.48 2 12a9.88 9.88 0 0 0 1.4 5.11L2 22l5-1.34A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-2.67-1.04-5.17-2.95-7.05Zm-7.04 15.3c-1.52 0-3-.41-4.27-1.2l-.31-.19-2.96.8.79-2.88-.2-.32A7.96 7.96 0 0 1 4.03 12c0-4.42 3.58-8 7.98-8 2.14 0 4.15.83 5.66 2.34A7.94 7.94 0 0 1 20 12c0 4.42-3.58 8.25-7.99 8.25Zm4.63-5.97c-.25-.13-1.47-.73-1.7-.82-.23-.08-.39-.13-.55.12-.16.25-.62.82-.76.98-.14.16-.28.18-.53.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.25-1.5-1.39-1.75-.14-.25-.01-.38.11-.5.11-.11.25-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.29-.02-.42-.06-.13-.55-1.33-.76-1.83-.2-.48-.4-.41-.55-.42h-.46c-.16 0-.42.06-.64.3-.22.25-.84.82-.84 2 0 1.18.86 2.33.98 2.49.12.16 1.69 2.55 4.09 3.58.57.25 1.01.4 1.36.53.57.18 1.08.15 1.49.09.45-.07 1.39-.57 1.58-1.12.2-.55.2-1.02.14-1.12-.05-.11-.2-.17-.45-.31Z"/>
+              </svg>
+            </button>
+            <button class="share-icon-btn" type="button" onclick="exportCurrentChatToText()" title="Export as Text" aria-label="Export as Text">
+              <i data-lucide="file-text"></i>
+            </button>
+            <button class="share-icon-btn" type="button" onclick="exportCurrentChatToPDF()" title="Export as PDF" aria-label="Export as PDF">
+              <i data-lucide="file-down"></i>
+            </button>
+          </div>
+          <button class="share-copy-btn" type="button" onclick="copyShareLink()" title="Copy Link" aria-label="Copy Link">
+            Copy Link
+          </button>
         </div>
       </div>
     </div>

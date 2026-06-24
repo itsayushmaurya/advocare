@@ -182,7 +182,7 @@ window.addEventListener("load", async () => {
   applySidebarState();
   initStrengthPanel();
   await renderSidebar();
-  await loadLastSession();
+  await loadInitialSession();
   updateReplyToggle();
   updateLanguageToggle();
   applyLanguageText();
@@ -597,6 +597,20 @@ async function loadLastSession() {
   startNewSession();
 }
 
+async function loadInitialSession() {
+  const shareSessionId = getSessionIdFromUrl();
+  if (shareSessionId) {
+    try {
+      await loadSession(shareSessionId);
+      return;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  await loadLastSession();
+}
+
 // ─── Sidebar Rendering ──────────────────────────────────────
 let activeMenuSessionId = null;
 let renamingSessionId = null;
@@ -814,31 +828,13 @@ function shareSession(sessionId) {
 async function openShareModal() {
   if (!currentSessionId) return;
   const modal = document.getElementById("shareModal");
-  const preview = document.getElementById("sharePreview");
-  if (!modal || !preview) return;
+  const linkInput = document.getElementById("shareLinkInput");
+  if (!modal || !linkInput) return;
 
   modal.classList.remove("hidden");
-  preview.innerHTML = '<p class="loading-preview">Loading preview...</p>';
-
-  try {
-    const response = await apiFetch(`/sessions/${currentSessionId}/messages`);
-    const messages = await response.json();
-    
-    if (messages.length === 0) {
-      preview.innerHTML = '<p class="no-messages">No messages to share.</p>';
-      return;
-    }
-
-    preview.innerHTML = messages
-      .map(m => `
-        <div class="preview-msg">
-          <span class="role-label ${m.role === 'user' ? 'user-label' : 'bot-label'}">${m.role}</span>
-          <div class="preview-content">${escapeHtml(m.content.substring(0, 200))}${m.content.length > 200 ? '...' : ''}</div>
-        </div>
-      `).join("");
-  } catch (err) {
-    preview.innerHTML = '<p class="error-preview">Error loading preview.</p>';
-  }
+  linkInput.value = getShareableChatLink();
+  linkInput.focus();
+  linkInput.select();
 }
 
 function closeShareModal() {
@@ -846,11 +842,17 @@ function closeShareModal() {
 }
 
 function copyShareLink() {
-  const dummyLink = `${window.location.origin}/chat/${currentSessionId}`;
-  navigator.clipboard.writeText(`Check out my legal guidance session on Advocare: \n${dummyLink}`)
+  const link = document.getElementById("shareLinkInput")?.value || getShareableChatLink();
+  copyTextToClipboard(link)
     .then(() => {
-      alert("Share link copied to clipboard!");
-      closeShareModal();
+      const button = document.querySelector(".share-copy-btn");
+      if (button) {
+        button.classList.add("copied");
+        clearTimeout(button._copyFeedbackTimer);
+        button._copyFeedbackTimer = setTimeout(() => {
+          button.classList.remove("copied");
+        }, 2000);
+      }
     })
     .catch(() => alert("Failed to copy link."));
 }
@@ -880,10 +882,95 @@ async function exportCurrentChatToText() {
     a.download = `advocare-chat-${currentSessionId}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    closeShareModal();
   } catch (err) {
     alert("Failed to export chat.");
   }
+}
+
+async function exportCurrentChatToPDF() {
+  if (!currentSessionId) return;
+  try {
+    const response = await apiFetch(`/sessions/${currentSessionId}/messages`);
+    const messages = await response.json();
+    const transcript = buildChatTranscript(messages);
+
+    if (containsDevanagari(transcript)) {
+      generateHTMLPDF(transcript);
+    } else {
+      const cleanText = stripEmojis(transcript);
+      if (typeof window.jsPDF === "undefined") {
+        const script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+        script.onload = () => generateJsPDF(cleanText);
+        script.onerror = () => alert("Failed to load PDF library");
+        document.head.appendChild(script);
+      } else {
+        generateJsPDF(cleanText);
+      }
+    }
+  } catch (err) {
+    alert("Failed to export chat.");
+  }
+}
+
+async function shareCurrentChatOnWhatsApp() {
+  const link = getShareableChatLink();
+  const shareText = `Check out this Advocare chat: ${link}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+  window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+}
+
+function getShareableChatLink() {
+  const url = new URL(window.location.href);
+  url.searchParams.set("session", currentSessionId);
+  url.hash = "";
+  return url.toString();
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-9999px";
+  textarea.style.left = "-9999px";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+
+  const copied = document.execCommand("copy");
+  document.body.removeChild(textarea);
+
+  if (!copied) {
+    throw new Error("Copy command failed");
+  }
+}
+
+function buildChatTranscript(messages) {
+  let text = "ADVOCARE - LEGAL CHAT EXPORT\n";
+  text += "============================\n\n";
+
+  messages.forEach((m) => {
+    const role = m.role.toUpperCase();
+    const content = m.content
+      .replace(/---CASE_ANALYSIS_START---[\s\S]*?---CASE_ANALYSIS_END---/g, "")
+      .replace(/---CASE_ANALYSIS_START---[\s\S]*$/g, "")
+      .trim();
+    text += `${role}:\n${content}\n\n`;
+  });
+
+  return text.trim();
+}
+
+function getSessionIdFromUrl() {
+  const sessionId = new URL(window.location.href).searchParams.get("session");
+  return sessionId && sessionId.trim() ? sessionId.trim() : null;
 }
 
 async function togglePinSession(sessionId, event) {
