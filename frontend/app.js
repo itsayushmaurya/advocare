@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+const API_BASE = "https://advocare-production.up.railway.app/";
 const TOKEN_KEY = "advocare_token";
 let conversationHistory = [];
 let isLoading = false;
