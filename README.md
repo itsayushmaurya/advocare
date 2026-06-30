@@ -9,7 +9,6 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-Frontend-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Groq](https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge&logoColor=white)](https://groq.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 ![Status](https://img.shields.io/badge/Status-Active-success?style=flat-square)
 ![Focus](https://img.shields.io/badge/Focus-Indian%20Legal%20Awareness-orange?style=flat-square)
@@ -438,7 +437,8 @@ git push origin feature/your-feature-name
 
 ## 📜 License
 
-This project is licensed under the **MIT License**.
+This project is currently not licensed for public reuse.
+The source code is shared for portfolio and educational demonstration purposes only.
 
 ---
 
