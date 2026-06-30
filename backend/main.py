@@ -31,7 +31,12 @@ app.add_exception_handler(RateLimitExceeded, lambda req, exc: HTTPException(
 # Allow frontend to call backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://advocare.vercel.app",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500"
+    ],
+    # allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
